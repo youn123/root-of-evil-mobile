@@ -95,7 +95,9 @@ class Home extends React.Component {
             Root{'\n'}of{'\n'}<Text>Evil</Text>
           </Text>
           <View style={styles.buttonBar}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => {
+              this.props.navigation.navigate('New');
+            }}>
               <Text style={[styles.button, {marginRight: 30}]}>New</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => {

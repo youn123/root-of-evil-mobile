@@ -1,4 +1,6 @@
 const INITIAL_STATE = {
+  appState: 'Menu', // enum('Menu', 'InGame'),
+  lobbyCode: '',
   members: ['steve', 'chenchen', 'qin', 'rubob']
 };
 
