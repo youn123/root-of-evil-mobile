@@ -11,9 +11,14 @@ import {
   ActivityIndicator
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { connect } from  'react-redux';
 
 import { ShowWhen } from '../hoc';
-import { sleep } from '../utils';
+import Lobby from '../lobby';
+import { SERVER_ADDR } from '../../env';
+import RootOfEvil from '../root-of-evil';
+
+import Mocks from '../mocks';
 
 const PRIMARY = '#0D0628';
 
@@ -84,11 +89,14 @@ class Join extends React.Component {
   handleNext = () => {
     this.setStateAsync({screenState: 'Loading'})
       .then(() => {
-        return sleep(1000);
+        return Lobby.join(SERVER_ADDR, this.state.code);
       })
-      .then(() => {
-        this.setState({screenState: 'WaitingForInput'});
+      .then(lobby => {
+        // Save lobby code in store
+        this.props.joinGame(lobby.lobbyId);
+
         this.props.navigation.navigate('Handle');
+        this.setState({screenState: 'WaitingForInput'});
       });
   }
 
@@ -182,4 +190,17 @@ class Join extends React.Component {
   }
 };
 
-export default Join;
+function mapStateToProps(state) {
+  return {
+    members: state.members,
+    isHost: state.isHost
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    joinGame: lobbyCode => dispatch({type: 'JOIN_GAME', lobbyCode: lobbyCode, gameState: RootOfEvil.createNew()})
+  };
+} 
+
+export default connect(mapStateToProps, mapDispatchToProps)(Join);

@@ -8,16 +8,16 @@
 
 import React from 'react';
 import { StatusBar } from 'react-native';
-import { NavigationContainer, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Provider, connect } from 'react-redux';
 import { createStore } from 'redux';
 
-import { Home, Join, Handle, MainChat, New } from './js/screens';
+import { Home, Join, Handle, MainChat, New, Lobby } from './js/screens';
 import reducer from './js/reducer';
 import { PRIMARY } from './js/settings';
+import store from './js/store';
 
-const store = createStore(reducer);
 const Stack = createStackNavigator();
 
 class App extends React.Component {
@@ -38,6 +38,7 @@ class App extends React.Component {
       case 'InGame':
         stack = (
           <>
+            <Stack.Screen name='Lobby' component={Lobby} />
             <Stack.Screen name='MainChat' component={MainChat} />
           </>
         );

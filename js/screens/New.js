@@ -12,9 +12,11 @@ import { connect } from 'react-redux';
 
 import { ShowWhen } from '../hoc';
 import { SERVER_ADDR } from '../../env';
+import Lobby from '../lobby';
+import RootOfEvil from '../root-of-evil';
 
 // FOR TESTING ONLY
-import Mock from '../mocks';
+import Mocks from '../mocks';
 
 const PRIMARY = '#0D0628';
 
@@ -53,18 +55,11 @@ class New extends React.Component {
   }
 
   componentDidMount() {
-    Mock.fetch(SERVER_ADDR + '/lobbies/new')
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        }
-
-        throw new Error();
-      })
-      .then(resJson => {
-        console.log(`Got lobbyId: ${resJson.lobby_id}`);
+    Lobby.create(SERVER_ADDR)
+      .then(lobby => {
+        console.log(`Got lobbyId: ${lobby.lobbyId}`);
         
-        this.props.setLobbyCode(resJson.lobby_id);
+        this.props.hostNewGame(lobby.lobbyId);
         this.setState({screenState: 'Succeeded'});
       })
       .catch(err => {
@@ -128,7 +123,7 @@ class New extends React.Component {
 
 function mapDispatchToProps(dispatch) {
   return {
-    setLobbyCode: lobbyCode => dispatch({type: 'SET_LOBBY_CODE', payload: lobbyCode})
+    hostNewGame: lobbyCode => dispatch({type: 'HOST_NEW_GAME', lobbyCode, gameState: RootOfEvil.createNew()})
   };
 }
 

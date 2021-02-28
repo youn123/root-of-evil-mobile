@@ -10,15 +10,13 @@ import {
   ScrollView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { connect, useStore } from 'react-redux';
+import { connect } from 'react-redux';
 
 import { ShowWhen } from '../hoc';
-import { sleep } from '../utils';
-import Lobby from '../lobby';
-import { SERVER_ADDR } from '../../env';
-import { getGameStateFromStore } from '../reducer';
-import store from '../store';
 import RootOfEvil from '../root-of-evil';
+import { getGameStateFromStore } from '../reducer';
+import { getCurrentLobby } from '../lobby';
+import store from '../store';
 
 // FOR TESTING ONLY
 import Mocks from '../mocks';
@@ -65,91 +63,71 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingRight: 20,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center'
   },
   nextButton: {
     backgroundColor: 'red',
     borderRadius: 40 / 2
   },
-  messageContainer: {
-    flexDirection: 'row',
-    marginTop: 10
+  statusMessage: {
+    backgroundColor: 'grey',
+    color: 'white',
+    padding: 5,
+    borderRadius: 5
   }
 });
 
-class Handle extends React.Component {
+class Lobby extends React.Component {
   state = {
-    handle: '',
-    inputLengthValid: false,
-    screenState: 'WaitingForInput', // enum('WaitingForInput', 'Loading', 'Failed')
-    errMessage: ''
   }
 
   componentDidMount() {
-    if (!this.props.isHost) {
-      Lobby.getCurrentLobby().listen(messages => {
+    // setInterval(() => {
+    //   this.props.setMembers([...this.props.members, 'Doh!']);
+    // }, 7000);
+
+    if (this.props.isHost) {
+      getCurrentLobby().listen(messages => {
+        let finalGameState;
+  
         for (let message of messages) {
           switch (message.type) {
             case 'NEW_GAME_STATE':
-              delete message.type;
-              delete message.to;
-
-              this.props.setGameState(message);
+              // I'm host, so I already have the latest game state
+              break;
             case 'JOIN':
+              let { newGameState, response } = RootOfEvil.apply(getGameStateFromStore(store.getState()), message);
+              finalGameState = newGameState;
+              getCurrentLobby().send(response);
               break;
           }
         }
+  
+        if (finalGameState) {
+          getCurrentLobby().send({
+            type: 'NEW_GAME_STATE',
+            to: 'everyone',
+            ...finalGameState
+          });
+
+          this.props.setGameState(finalGameState);
+        }
       });
-    }
-  }
-
-  componentWillUnmount() {
-    console.log('Handle componentWillUnmount()');
-  }
-
-  validateInputLength = input => {
-    return input.length > 0 && input.length <= 16;
-  }
-
-  validateInput = async input => {
-    if (!input.match(/^[a-zA-Z0-9_/-]+$/g)) {
-      throw new Error('Name must consist of letters, numbers, and underscore.');
-    }
-
-    if (!this.props.isHost) {
-      return Lobby.getCurrentLobby().send({
-        type: 'JOIN',
-        handle: input,
-        to: 'host'
-      }, true)
-        .then(res => {
-          console.log(res);
-          if (res.result != 'Accepted') {
-            throw new Error();
-          }
-        });
-    } else {
-      let gameState = getGameStateFromStore(store.getState());
-
-      let { newGameState } = RootOfEvil.apply(gameState, {
-        type: 'JOIN',
-        handle: input,
-        from: Lobby.getCurrentLobby().clientId
-      });
-
-      this.props.setGameState(newGameState);
     }
   }
 
   handleNext = () => {
     this.setStateAsync({screenState: 'Loading'})
       .then(() => {
-        return this.validateInput(this.state.handle);
+        return this.validateInput(this.state.input);
       })
-      .then(() => {
+      .then(errMessage => {
+        if (!errMessage) {
+          throw new Error(errMessage);
+        }
+
         this.setState({screenState: 'WaitingForInput'});
-        // Switch navigation stack
         this.props.setAppState('InGame');
       })
       .catch(err => {
@@ -171,17 +149,12 @@ class Handle extends React.Component {
   }
 
   render() {
+    let status = 'Waiting...';
+
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={this.props.navigation.goBack}>
-            <Icon
-              name='chevron-back-outline'
-              size={40}
-              color='white'
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[
               styles.nextButton,
               {backgroundColor: this.nextButtonDisabled() ? 'grey' : 'red'}
@@ -194,33 +167,14 @@ class Handle extends React.Component {
               size={40}
               color='white'
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
+          <Text style={styles.statusMessage}>{status}</Text>
         </View>
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Enter your name:</Text>
-          <TextInput
-            style={styles.input}
-            maxLength={16}
-            onChangeText={text => {
-              this.setState({
-                handle: text,
-                inputLengthValid: this.validateInputLength(text),
-                screenState: 'WaitingForInput'
-              });
-            }}
-          />
-          <View style={styles.messageContainer}>
-            <ShowWhen condition={this.state.screenState == 'Loading'}>
-              <Text style={{color: 'grey'}}>Validating{this.state.input}...</Text>
-              <ActivityIndicator size='small' color='grey' />
-            </ShowWhen>
-            <ShowWhen condition={this.state.screenState == 'Failed'}>
-              <Text style={{color: 'red'}}>{this.state.errMessage}</Text>
-            </ShowWhen>
-          </View>
+          <Text>Lorem ipsum...</Text>
         </View>
         <ScrollView contentContainerStyle={{width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-evenly', marginTop: 10}}>
-          {this.props.players.map(item => <Text style={{marginHorizontal: 10, fontSize: 18, marginTop: 10}} key={item}>{item}</Text>)}
+          {this.props.players.map(player => <Text style={{marginHorizontal: 10, fontSize: 18, marginTop: 10}} key={player}>{player}</Text>)}
         </ScrollView>
       </SafeAreaView>
     );
@@ -231,7 +185,6 @@ function mapStateToProps(state) {
   return {
     members: state.members,
     isHost: state.isHost,
-    lobbyCode: state.lobbyCode,
     players: state.players
   };
 }
@@ -242,8 +195,8 @@ function mapDispatchToProps(dispatch) {
     setMembers: members => dispatch({type: 'SET_MEMBERS', payload: members}),
     setGameState: gameState => dispatch({type: 'SET_GAME_STATE', gameState: gameState})
   };
-} 
+}
 
-export default connect(mapStateToProps, mapDispatchToProps)(Handle);
+export default connect(mapStateToProps, mapDispatchToProps)(Lobby);
 
 // export default Handle;

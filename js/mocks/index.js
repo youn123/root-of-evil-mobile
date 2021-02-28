@@ -1,6 +1,7 @@
 import { sleep } from '../utils';
+import Lobby from './lobby';
 
-function fetch(addr) {
+function mockFetch(addr) {
   if (addr.includes('/lobbies/new')) {
     return sleep(1000)
       .then(() => {
@@ -19,5 +20,6 @@ function fetch(addr) {
 }
 
 export default {
-  fetch
+  fetch: mockFetch,
+  Lobby
 };
