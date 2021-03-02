@@ -12,14 +12,13 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { ShowWhen } from '../hoc';
 import RootOfEvil from '../root-of-evil';
 import { getGameStateFromStore } from '../reducer';
-import { getCurrentLobby } from '../lobby';
 import store from '../store';
+import { ShowWhen } from '../hoc';
 
-// FOR TESTING ONLY
-import Mocks from '../mocks';
+// import { getCurrentLobby } from '../lobby';
+import { getCurrentLobby } from '../mocks/lobby';
 
 const PRIMARY = '#0D0628';
 
@@ -27,53 +26,19 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: PRIMARY,
     height: '100%',
-    paddingLeft: 10
-  },
-  modalBackground: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  modal: {
-    width: 250,
-    height: 200,
-    padding: 10,
-    backgroundColor: PRIMARY,
-    elevation: 1,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  inputContainer: {
-    marginLeft: 20,
-    marginTop: 10,
-    paddingRight: 20
-  },
-  inputLabel: {
-    fontSize: 16
-  },
-  input: {
-    fontSize: 32,
-    color: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: 'grey'
+    paddingLeft: 20
   },
   header: {
     paddingTop: 10,
-    paddingLeft: 10,
     paddingRight: 20,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center'
   },
   nextButton: {
-    backgroundColor: 'red',
-    borderRadius: 40 / 2
-  },
-  statusMessage: {
-    backgroundColor: 'grey',
     color: 'white',
-    padding: 5,
+    paddingHorizontal: 7,
+    paddingVertical: 5,
     borderRadius: 5
   }
 });
@@ -83,12 +48,9 @@ class Lobby extends React.Component {
   }
 
   componentDidMount() {
-    // setInterval(() => {
-    //   this.props.setMembers([...this.props.members, 'Doh!']);
-    // }, 7000);
-
     if (this.props.isHost) {
       getCurrentLobby().listen(messages => {
+        console.log(`Received ${messages.length} messages.`);
         let finalGameState;
   
         for (let message of messages) {
@@ -101,6 +63,11 @@ class Lobby extends React.Component {
               finalGameState = newGameState;
               getCurrentLobby().send(response);
               break;
+            case 'MESSAGE':
+              store.dispatch({
+                type: 'ADD_MESSAGE',
+                message
+              });
           }
         }
   
@@ -118,24 +85,7 @@ class Lobby extends React.Component {
   }
 
   handleNext = () => {
-    this.setStateAsync({screenState: 'Loading'})
-      .then(() => {
-        return this.validateInput(this.state.input);
-      })
-      .then(errMessage => {
-        if (!errMessage) {
-          throw new Error(errMessage);
-        }
-
-        this.setState({screenState: 'WaitingForInput'});
-        this.props.setAppState('InGame');
-      })
-      .catch(err => {
-        this.setState({
-          screenState: 'Failed',
-          errMessage: err.message
-        });
-      })
+    this.props.navigation.navigate('MainChat');
   }
 
   setStateAsync = newState => {
@@ -144,38 +94,35 @@ class Lobby extends React.Component {
     });
   }
 
-  nextButtonDisabled = () => {
-    return !this.state.inputLengthValid || this.state.screenState == 'Loading';
-  }
-
   render() {
-    let status = 'Waiting...';
+    let status = this.props.players.length > 0 ? 'Ready' : 'Waiting';
 
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          {/* <TouchableOpacity
-            style={[
-              styles.nextButton,
-              {backgroundColor: this.nextButtonDisabled() ? 'grey' : 'red'}
-            ]}
-            disabled={this.nextButtonDisabled()}
-            onPress={this.handleNext}
-          >
-            <Icon
-              name='chevron-forward-outline'
-              size={40}
-              color='white'
-            />
-          </TouchableOpacity> */}
-          <Text style={styles.statusMessage}>{status}</Text>
+          <Text style={{fontSize: 19}}>{this.props.lobbyCode}</Text>
+          <ShowWhen condition={status == 'Waiting'}>
+            <TouchableOpacity disabled>
+              <Text style={[styles.nextButton, {backgroundColor: 'grey'}]}>Waiting...</Text>
+            </TouchableOpacity>
+          </ShowWhen>
+          <ShowWhen condition={status == 'Ready'}>
+            <TouchableOpacity onPress={this.handleNext}>
+              <Text style={[styles.nextButton, {backgroundColor: 'green'}]}>Start!</Text>
+            </TouchableOpacity>
+          </ShowWhen>
         </View>
-        <View style={styles.inputContainer}>
-          <Text>Lorem ipsum...</Text>
+        <View style={{marginTop: 20}}>
+          <ShowWhen condition={this.props.players.length == 1}>
+            <Text>1 person has joined.</Text>
+          </ShowWhen>
+          <ShowWhen condition={this.props.players.length > 1}>
+            <Text>{this.props.players.length} people have joined.</Text>
+          </ShowWhen>
+          <ScrollView contentContainerStyle={{width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-evenly', marginTop: 10}}>
+            {this.props.players.map(player => <Text style={{marginHorizontal: 10, fontSize: 18, marginTop: 10}} key={player}>{player}</Text>)}
+          </ScrollView>
         </View>
-        <ScrollView contentContainerStyle={{width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-evenly', marginTop: 10}}>
-          {this.props.players.map(player => <Text style={{marginHorizontal: 10, fontSize: 18, marginTop: 10}} key={player}>{player}</Text>)}
-        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -185,7 +132,8 @@ function mapStateToProps(state) {
   return {
     members: state.members,
     isHost: state.isHost,
-    players: state.players
+    players: state.players,
+    lobbyCode: state.lobbyCode
   };
 }
 
@@ -193,10 +141,9 @@ function mapDispatchToProps(dispatch) {
   return {
     setAppState: appState => dispatch({type: 'SET_APP_STATE', payload: appState}),
     setMembers: members => dispatch({type: 'SET_MEMBERS', payload: members}),
-    setGameState: gameState => dispatch({type: 'SET_GAME_STATE', gameState: gameState})
+    setGameState: gameState => dispatch({type: 'SET_GAME_STATE', gameState: gameState}),
+    addMessage: message => dispatch({type: 'ADD_MESSAGE', message})
   };
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Lobby);
-
-// export default Handle;

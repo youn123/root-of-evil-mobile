@@ -13,15 +13,12 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { connect, useStore } from 'react-redux';
 
 import { ShowWhen } from '../hoc';
-import { sleep } from '../utils';
-import Lobby from '../lobby';
-import { SERVER_ADDR } from '../../env';
 import { getGameStateFromStore } from '../reducer';
 import store from '../store';
 import RootOfEvil from '../root-of-evil';
 
-// FOR TESTING ONLY
-import Mocks from '../mocks';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const PRIMARY = '#0D0628';
 
@@ -149,6 +146,7 @@ class Handle extends React.Component {
       })
       .then(() => {
         this.setState({screenState: 'WaitingForInput'});
+        this.props.setHandle(this.state.handle);
         // Switch navigation stack
         this.props.setAppState('InGame');
       })
@@ -240,7 +238,8 @@ function mapDispatchToProps(dispatch) {
   return {
     setAppState: appState => dispatch({type: 'SET_APP_STATE', payload: appState}),
     setMembers: members => dispatch({type: 'SET_MEMBERS', payload: members}),
-    setGameState: gameState => dispatch({type: 'SET_GAME_STATE', gameState: gameState})
+    setGameState: gameState => dispatch({type: 'SET_GAME_STATE', gameState: gameState}),
+    setHandle: handle => dispatch({type: 'SET_HANDLE', handle})
   };
 } 
 

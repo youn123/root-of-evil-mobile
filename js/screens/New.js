@@ -12,11 +12,10 @@ import { connect } from 'react-redux';
 
 import { ShowWhen } from '../hoc';
 import { SERVER_ADDR } from '../../env';
-import Lobby from '../lobby';
 import RootOfEvil from '../root-of-evil';
 
-// FOR TESTING ONLY
-import Mocks from '../mocks';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const PRIMARY = '#0D0628';
 

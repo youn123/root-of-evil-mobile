@@ -8,11 +8,19 @@ class Lobby {
     this.isHost = isHost;
 
     this.listening = false;
+    this.messages = [];
   }
 
   listen(callback) {
     this.callback = callback;
     this.listening = true;
+
+    this.checkForMessages = setInterval(() => {
+      if (this.messages.length != 0) {
+        this.callback(this.messages);
+        this.messages = [];
+      }
+    }, 100);
   }
 
   send(message, returnResponse) {
@@ -23,7 +31,10 @@ class Lobby {
         });
     }
 
-    return sleep(1000);
+    return sleep(1000)
+      .then(() => {
+        this.messages.push(message);
+      });
   }
 }
 
@@ -45,7 +56,7 @@ function join(serverAddr, lobbyId) {
     });
 }
 
-function getCurrentLobby() {
+export function getCurrentLobby() {
   return currentLobby;
 }
 

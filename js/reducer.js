@@ -2,7 +2,9 @@ const INITIAL_STATE = {
   appState: 'Menu', // enum('Menu', 'InGame'),
   lobbyCode: '',
   members: [],
-  isHost: false
+  isHost: false,
+  handle: '',
+  messages: []
 };
 
 export default function reducer(state = INITIAL_STATE, action) {
@@ -35,13 +37,23 @@ export default function reducer(state = INITIAL_STATE, action) {
       return {
         ...state,
         members: action.payload
-      }
+      };
+    case 'SET_HANDLE':
+      return {
+        ...state,
+        handle: action.handle
+      };
+    case 'ADD_MESSAGE':
+      return {
+        ...state,
+        messages: [...state.messages, action.message]
+      };
   }
 
   return state;
 }
 
 export function getGameStateFromStore(store) {
-  let { appState, lobbyCode, members, ...gameState } = store;
+  let { appState, lobbyCode, members, handle, messages, ...gameState } = store;
   return gameState;
 }

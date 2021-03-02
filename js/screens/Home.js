@@ -60,11 +60,6 @@ class Home extends React.Component {
   };
 
   componentDidMount() {
-    this.keyboardDidShowSub = Keyboard.addListener('keyboardDidShow', event => {
-      const { height: widnowHeight } = Dimensions.get('window');
-      console.log(`screen height: ${widnowHeight}`);
-      console.log(`keyboard height: ${event.endCoordinates.height}`);
-    });
   }
 
   render() {

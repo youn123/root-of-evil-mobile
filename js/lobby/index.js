@@ -46,7 +46,7 @@ class Lobby {
         headers: {
           'Content-type': 'text/plain'
         },
-        body: JSON.stringify({...message, id: messageId, from: this.clientId})
+        body: JSON.stringify({...message, _id: messageId, _from: this.clientId})
       })
         .then(res => {
           if (res.status != 200) {
@@ -116,9 +116,9 @@ class Lobby {
           } else if (message.to === 'everyone') {
             messages.push(message);
           } else if (message.to === this.clientId) {
-            if (message.id && this.pending.has(message.id)) {
-              let { resolve } = this.pending.get(message.id);
-              this.pending.delete(message.id);
+            if (message._id && this.pending.has(message._id)) {
+              let { resolve } = this.pending.get(message._id);
+              this.pending.delete(message._id);
   
               resolve(message);
             } else {
