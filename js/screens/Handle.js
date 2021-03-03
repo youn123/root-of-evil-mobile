@@ -17,8 +17,9 @@ import { getGameStateFromStore } from '../reducer';
 import store from '../store';
 import RootOfEvil from '../root-of-evil';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
+import { clientHandleRootOfEvilMessage } from '../root-of-evil-message-handler';
 
 const PRIMARY = '#0D0628';
 
@@ -86,18 +87,10 @@ class Handle extends React.Component {
   componentDidMount() {
     if (!this.props.isHost) {
       Lobby.getCurrentLobby().listen(messages => {
-        for (let message of messages) {
-          switch (message.type) {
-            case 'NEW_GAME_STATE':
-              delete message.type;
-              delete message.to;
-
-              this.props.setGameState(message);
-            case 'JOIN':
-              break;
-          }
-        }
+        clientHandleRootOfEvilMessage(messages, Lobby.getCurrentLobby(), store);
       });
+    } else {
+      console.log(this.props.players);
     }
   }
 
@@ -118,24 +111,26 @@ class Handle extends React.Component {
       return Lobby.getCurrentLobby().send({
         type: 'JOIN',
         handle: input,
-        to: 'host'
       }, true)
         .then(res => {
-          console.log(res);
           if (res.result != 'Accepted') {
-            throw new Error();
+            throw new Error(res.message);
           }
         });
     } else {
       let gameState = getGameStateFromStore(store.getState());
 
-      let { newGameState } = RootOfEvil.apply(gameState, {
+      let { newGameState, response } = RootOfEvil.apply(gameState, {
         type: 'JOIN',
         handle: input,
-        from: Lobby.getCurrentLobby().clientId
       });
 
       this.props.setGameState(newGameState);
+      Lobby.getCurrentLobby().send({
+        ...newGameState,
+        type: 'NEW_GAME_STATE',
+        to: '__everyone'
+      });
     }
   }
 
@@ -148,7 +143,7 @@ class Handle extends React.Component {
         this.setState({screenState: 'WaitingForInput'});
         this.props.setHandle(this.state.handle);
         // Switch navigation stack
-        this.props.setAppState('InGame');
+        this.props.setAppState('Lobby');
       })
       .catch(err => {
         this.setState({
@@ -218,7 +213,7 @@ class Handle extends React.Component {
           </View>
         </View>
         <ScrollView contentContainerStyle={{width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-evenly', marginTop: 10}}>
-          {this.props.players.map(item => <Text style={{marginHorizontal: 10, fontSize: 18, marginTop: 10}} key={item}>{item}</Text>)}
+          {this.props.players.map(player => <Text style={{marginHorizontal: 10, fontSize: 18, marginTop: 10}} key={player}>{player}</Text>)}
         </ScrollView>
       </SafeAreaView>
     );
@@ -236,13 +231,10 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    setAppState: appState => dispatch({type: 'SET_APP_STATE', payload: appState}),
-    setMembers: members => dispatch({type: 'SET_MEMBERS', payload: members}),
-    setGameState: gameState => dispatch({type: 'SET_GAME_STATE', gameState: gameState}),
+    setAppState: appState => dispatch({type: 'SET_APP_STATE', appState}),
+    setGameState: gameState => dispatch({type: 'SET_GAME_STATE', gameState}),
     setHandle: handle => dispatch({type: 'SET_HANDLE', handle})
   };
 } 
 
 export default connect(mapStateToProps, mapDispatchToProps)(Handle);
-
-// export default Handle;

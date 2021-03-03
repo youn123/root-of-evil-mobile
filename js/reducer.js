@@ -1,10 +1,11 @@
 const INITIAL_STATE = {
-  appState: 'Menu', // enum('Menu', 'InGame'),
+  appState: 'Menu', // enum('Menu', 'Lobby', 'RoleAssignment', 'InGame'),
   lobbyCode: '',
-  members: [],
   isHost: false,
   handle: '',
-  messages: []
+  messages: [],
+  role: null,
+  evilMembers: ['steve', 'chenchen', 'qin', 'Youn']
 };
 
 export default function reducer(state = INITIAL_STATE, action) {
@@ -26,17 +27,12 @@ export default function reducer(state = INITIAL_STATE, action) {
     case 'SET_APP_STATE':
       return {
         ...state,
-        appState: action.payload
+        appState: action.appState
       };
     case 'SET_GAME_STATE':
       return {
         ...state,
         ...action.gameState
-      };
-    case 'SET_MEMBERS':
-      return {
-        ...state,
-        members: action.payload
       };
     case 'SET_HANDLE':
       return {
@@ -48,12 +44,17 @@ export default function reducer(state = INITIAL_STATE, action) {
         ...state,
         messages: [...state.messages, action.message]
       };
+    case 'SET_ROLE':
+      return {
+        ...state,
+        role: action.role
+      };
   }
 
   return state;
 }
 
 export function getGameStateFromStore(store) {
-  let { appState, lobbyCode, members, handle, messages, ...gameState } = store;
+  let { appState, lobbyCode, isHost, handle, messages, role, ...gameState } = store;
   return gameState;
 }

@@ -14,11 +14,11 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from  'react-redux';
 
 import { ShowWhen } from '../hoc';
-import Lobby from '../lobby';
 import { SERVER_ADDR } from '../../env';
 import RootOfEvil from '../root-of-evil';
 
-import Mocks from '../mocks';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const PRIMARY = '#0D0628';
 

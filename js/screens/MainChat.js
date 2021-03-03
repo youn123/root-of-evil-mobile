@@ -12,7 +12,8 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Keyboard,
-  Dimensions
+  Dimensions,
+  BackHandler
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
@@ -20,8 +21,8 @@ import { connect } from 'react-redux';
 import { PRIMARY, SECONDARY } from '../settings';
 
 import { generateRandomBase64String } from '../utils';
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const fakeChat = [
   {from: 'steve', message: 'hello1', id: '0'},
@@ -47,13 +48,24 @@ const fakeChat = [
 ];
 
 function Bubble(props) {
+  if (props.from == '*') {
+    return (
+      <View style={{
+        paddingHorizontal: 10,
+        marginVertical: 5
+      }}>
+        <Text style={styles.announcement}>{props.text}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={{
       paddingHorizontal: 10,
-      marginBottom: 10
+      marginVertical: 5
     }}>
       <Text style={{fontSize: 16, fontWeight: 'bold'}}>{props.from}</Text>
-      <Text>{props.text}</Text>
+      <Text style={props.from == '*' && styles.announcement}>{props.text}</Text>
     </View>
   );
 }
@@ -89,7 +101,9 @@ const styles = StyleSheet.create({
   },
   input: {
     color: 'white',
-    paddingVertical: 0
+    paddingVertical: 0,
+    width: '90%',
+    maxHeight: 60
   },
   header: {
     paddingTop: 10,
@@ -98,7 +112,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'yellow',
+    backgroundColor: SECONDARY,
     // position: 'absolute',
     top: 0,
     width: '100%'
@@ -110,6 +124,10 @@ const styles = StyleSheet.create({
   messageContainer: {
     flexDirection: 'row',
     marginTop: 10
+  },
+  announcement: {
+    fontStyle: 'italic',
+    color: '#485696'
   }
 });
 
@@ -120,26 +138,60 @@ class MainChat extends React.Component {
   }
 
   componentDidMount() {
-    this.keyboardDidShowSub = Keyboard.addListener('keyboardDidShow', event => {
-      const { height: widnowHeight } = Dimensions.get('window');
+    Keyboard.addListener('keyboardDidShow', this.handleKeyboardDidShow);
+    Keyboard.addListener('keyboardDidHide', this.handleKeyboardDidHide);
 
-      console.log(`screen height: ${widnowHeight}`);
-      console.log(`keyboard height: ${event.endCoordinates.height}`);
+    // BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
 
-      this.flatListRef.scrollToOffset({
-        offset: this.state.scrollOffset + event.endCoordinates.height
-      });
+    this.props.navigation.addListener('focus', () => {
+      console.log('MainChat focused');
     });
+  }
+
+  componentWillUnmount() {
+    Keyboard.removeListener('keyboardDidShow', this.handleKeyboardDidShow);
+    Keyboard.removeListener('keyboardDidHide', this.handleKeyboardDidHide);
+    // BackHandler.removeEventListener('hardwareBackPress', this.handleBackButton);
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.endReached && prevProps.messages != this.props.messages) {
+      console.log('Doh!');
+      this.flatListRef.scrollToEnd();
+    }
+  }
+
+  handleBackButton = () => true;
+
+  handleKeyboardDidShow = event => {
+    const { height: widnowHeight } = Dimensions.get('window');
+
+    console.log(`screen height: ${widnowHeight}`);
+    console.log(`keyboard height: ${event.endCoordinates.height}`);
+
+    this.setStateAsync({keyboardHeight: event.endCoordinates.height})
+      .then(() => {
+        this.flatListRef.scrollToOffset({
+          offset: this.state.scrollOffset + this.state.keyboardHeight
+        });
+      })
+  }
+
+  handleKeyboardDidHide = event => {
+    this.setState({keyboardHeight: 0});
   }
 
   handleSendMessage = () => {
     Lobby.getCurrentLobby().send({
       type: 'MESSAGE',
       from: this.props.handle,
-      to: 'everyone',
+      to: '__everyone',
       text: this.state.text,
       id: generateRandomBase64String(5)
-    });
+    })
+      .then(() => {
+        this.setState({text: ''});
+      });
   }
 
   setStateAsync = newState => {
@@ -172,11 +224,34 @@ class MainChat extends React.Component {
             onScroll={({ nativeEvent }) => {
               console.log(nativeEvent.contentOffset.y);
 
-              this.setState({
-                scrollOffset: nativeEvent.contentOffset.y
-              });
+              // Scrolling up
+              if (nativeEvent.contentOffset.y < this.state.scrollOffset) {
+                console.log('Scrolling up');
+                this.setState({
+                  scrollOffset: nativeEvent.contentOffset.y,
+                  endReached: false
+                });
+              } else {
+                this.setState({
+                  scrollOffset: nativeEvent.contentOffset.y
+                });
+              }
             }}
             scrollEventThrottle
+            onEndReachedThreshold={0.05}
+            onEndReached={() => {
+              console.log('onEndReached()');
+              this.setState({
+                endReached: true
+              });
+            }}
+            onContentSizeChange={() => {
+              if (this.state.endReached) {
+                this.flatListRef.scrollToEnd();
+              } else if (this.props.messages.length != 0 && this.props.messages[this.props.messages.length - 1].from == this.props.handle) {
+                this.flatListRef.scrollToEnd();
+              }
+            }}
           />
         </View>
         <View style={styles.inputContainer}>
@@ -188,6 +263,8 @@ class MainChat extends React.Component {
             placeholder='Choose your words carefully.'
             placeholderTextColor='grey'
             multiline
+            maxLength={140}
+            value={this.state.text}
           />
           <TouchableOpacity onPress={this.handleSendMessage}>
             <Icon
@@ -206,7 +283,6 @@ function mapStateToProps(state) {
   return {
     isHost: state.isHost,
     players: state.players,
-    lobbyCode: state.lobbyCode,
     messages: state.messages,
     handle: state.handle
   };

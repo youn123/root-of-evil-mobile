@@ -1,9 +1,19 @@
+const RESERVED_HANDLES = [
+  '__everyone',
+  '__host',
+  '*'
+];
+
+const Roles = {
+  RootOfEvil: 'RootOfEvil',
+  FBI: 'FBI'
+};
+
 function createNew() {
   return {
     players: [],
-    idToPlayers: {},
-    playersToId: {},
-    state: 'Created'
+    state: 'Created',
+    evilMembers: []
   };
 }
   
@@ -16,30 +26,33 @@ function apply(gameState, action) {
   
 function join(gameState, joinData) {
   if (gameState.players.includes(joinData.handle)) {
-    return [gameState, {
-      result: 'Rejected',
-      to: joinData.from
-    }];
-  } else {
     return {
-      newGameState: {
-        players: [...gameState.players, joinData.handle],
-        idToPlayers: {
-          ...gameState.idToPlayers,
-          [joinData.from]: joinData.handle 
-        },
-        playersToId: {
-          ...gameState.playersToId,
-          [joinData.handle]: joinData.from
-        }
-      },
+      newGameState: gameState,
       response: {
-        result: 'Accepted',
-        to: joinData.from,
-        id: joinData.id
+        result: 'Rejected',
+        message: `'${joinData.handle}' is already taken.`
       }
     };
   }
+  
+  if (RESERVED_HANDLES.includes(joinData.handle)) {
+    return {
+      newGameState: gameState,
+      response: {
+        result: 'Rejected',
+        message: `'${joinData.handle}' is a reserved keyword.`
+      }
+    };
+  }
+  
+  return {
+    newGameState: {
+      players: [...gameState.players, joinData.handle],
+    },
+    response: {
+      result: 'Accepted'
+    }
+  };
 }
   
 function start(gameState) {
@@ -65,11 +78,32 @@ function start(gameState) {
     state: 'TeamBuilding'
   };
 
-  return [newGameState, {
-    ...newGameState,
-    result: 'NEW_GAME_STATE',
-    to: 'everyone'
-  }];
+  return {
+    newGameState,
+    response: {
+      ...newGameState,
+      type: 'NEW_GAME_STATE'
+    }
+  };
+}
+
+function startWithConfig(gameState, config) {
+  let numEvilMembers = config.numEvilMembers;
+  let { chosen } = chooseNoReplacement(gameState.players, numEvilMembers);
+
+  let newGameState = {
+    ...gameState,
+    evilMembers: chosen,
+    state: 'TeamBuilding'
+  };
+
+  return {
+    newGameState,
+    response: {
+      ...newGameState,
+      type: 'NEW_GAME_STATE'
+    }
+  };
 }
   
 function chooseNoReplacement(arr, numToChoose) {
@@ -91,5 +125,7 @@ function chooseNoReplacement(arr, numToChoose) {
 export default {
   createNew,
   apply,
-  start
+  start,
+  startWithConfig,
+  Roles
 };

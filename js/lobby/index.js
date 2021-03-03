@@ -13,6 +13,7 @@ class Lobby {
 
     this.onMessage.bind(this);
     this.send.bind(this);
+    this.respondTo.bind(this);
     this._continuouslyFetch.bind(this);
     this._fetchMessages.bind(this);
   }
@@ -36,6 +37,8 @@ class Lobby {
       while (this.pending.has(messageId)) {
         messageId = generateRandomBase64String(7);
       }
+
+      console.log(`Sending messae with id: ${message.id}`);
 
       let promise = new Promise((resolve, reject) => {
         this.pending.set(messageId, {resolve, reject});
@@ -66,7 +69,7 @@ class Lobby {
         headers: {
           'Content-type': 'text/plain'
         },
-        body: JSON.stringify({...message, from: this.clientId})
+        body: JSON.stringify({...message, _from: this.clientId})
       })
         .then(res => {
           if (res.status != 200) {
@@ -74,6 +77,16 @@ class Lobby {
           }
         });
     }
+  }
+
+  respondTo(message, response) {
+    response = {
+      ...response,
+      _id: message._id,
+      _to: message._from
+    };
+
+    return this.send(response);
   }
 
   quit() {
@@ -105,28 +118,45 @@ class Lobby {
         return res.json();
       })
       .then(json => {
-        console.log(`Received ${json.messages.length} messages. isHost: ${this.isHost}`);
+        // console.log(`Received ${json.messages.length} messages. isHost: ${this.isHost}`);
         let messages = [];
 
         for (let message of json.messages) {
           message = JSON.parse(message);
 
-          if (this.isHost && message.to === 'host') {
-            messages.push(message);
-          } else if (message.to === 'everyone') {
-            messages.push(message);
-          } else if (message.to === this.clientId) {
+          // console.log(`Message has id: ${message._id} isHost: ${this.isHost}`);
+          // console.log(message);
+
+          if (message._to === this.clientId) {
             if (message._id && this.pending.has(message._id)) {
+              // console.log('Doh!');
+
               let { resolve } = this.pending.get(message._id);
               this.pending.delete(message._id);
   
               resolve(message);
-            } else {
-              messages.push(message);
+              continue;
             }
-          } else if (Object.getPrototypeOf(message.to) == Array.prototype && message.to.includes(this.clientId)) {
-            messages.push(message);
           }
+
+          messages.push(message);
+
+          // if (this.isHost && message.to === 'host') {
+          //   messages.push(message);
+          // } else if (message.to === 'everyone') {
+          //   messages.push(message);
+          // } else if (message.to === this.clientId) {
+          //   if (message._id && this.pending.has(message._id)) {
+          //     let { resolve } = this.pending.get(message._id);
+          //     this.pending.delete(message._id);
+  
+          //     resolve(message);
+          //   } else {
+          //     messages.push(message);
+          //   }
+          // } else if (Object.getPrototypeOf(message.to) == Array.prototype && message.to.includes(this.clientId)) {
+          //   messages.push(message);
+          // }
         }
 
         this.numMessagesReceived += json.messages.length;
@@ -169,8 +199,15 @@ export function getCurrentLobby() {
   return currentLobby;
 }
 
+export function removeMetadata(msg) {
+  let { _to, _from, _id, ...message } = msg;
+
+  return message;
+}
+
 export default {
   create,
   join,
-  getCurrentLobby
+  getCurrentLobby,
+  removeMetadata
 };

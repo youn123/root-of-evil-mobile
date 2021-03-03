@@ -11,10 +11,17 @@ import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Provider, connect } from 'react-redux';
-import { createStore } from 'redux';
 
-import { Home, Join, Handle, MainChat, New, Lobby } from './js/screens';
-import reducer from './js/reducer';
+import {
+  Home,
+  Join,
+  Handle,
+  MainChat,
+  New,
+  Lobby,
+  RoleAssignment
+} from './js/screens';
+
 import { PRIMARY } from './js/settings';
 import store from './js/store';
 
@@ -35,10 +42,15 @@ class App extends React.Component {
           </>
         );
         break;
+      case 'Lobby':
+        stack = <Stack.Screen name='Lobby' component={Lobby} />;
+        break;
+      case 'RoleAssignment':
+        stack = <Stack.Screen name='RoleAssignment' component={RoleAssignment} />;
+        break;
       case 'InGame':
         stack = (
           <>
-            <Stack.Screen name='Lobby' component={Lobby} />
             <Stack.Screen name='MainChat' component={MainChat} />
           </>
         );

@@ -12,13 +12,13 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import RootOfEvil from '../root-of-evil';
-import { getGameStateFromStore } from '../reducer';
 import store from '../store';
 import { ShowWhen } from '../hoc';
 
-// import { getCurrentLobby } from '../lobby';
-import { getCurrentLobby } from '../mocks/lobby';
+import { getCurrentLobby } from '../lobby';
+// import { getCurrentLobby } from '../mocks/lobby';
+
+import { hostHandleRootOfEvilMessage } from '../root-of-evil-message-handler';
 
 const PRIMARY = '#0D0628';
 
@@ -50,42 +50,16 @@ class Lobby extends React.Component {
   componentDidMount() {
     if (this.props.isHost) {
       getCurrentLobby().listen(messages => {
-        console.log(`Received ${messages.length} messages.`);
-        let finalGameState;
-  
-        for (let message of messages) {
-          switch (message.type) {
-            case 'NEW_GAME_STATE':
-              // I'm host, so I already have the latest game state
-              break;
-            case 'JOIN':
-              let { newGameState, response } = RootOfEvil.apply(getGameStateFromStore(store.getState()), message);
-              finalGameState = newGameState;
-              getCurrentLobby().send(response);
-              break;
-            case 'MESSAGE':
-              store.dispatch({
-                type: 'ADD_MESSAGE',
-                message
-              });
-          }
-        }
-  
-        if (finalGameState) {
-          getCurrentLobby().send({
-            type: 'NEW_GAME_STATE',
-            to: 'everyone',
-            ...finalGameState
-          });
-
-          this.props.setGameState(finalGameState);
-        }
+        hostHandleRootOfEvilMessage(messages, getCurrentLobby(), store);
       });
     }
   }
 
-  handleNext = () => {
-    this.props.navigation.navigate('MainChat');
+  handleStart = () => {
+    getCurrentLobby().send({
+      type: 'START_GAME',
+      to: '__everyone'
+    });
   }
 
   setStateAsync = newState => {
@@ -95,19 +69,17 @@ class Lobby extends React.Component {
   }
 
   render() {
-    let status = this.props.players.length > 0 ? 'Ready' : 'Waiting';
+    let status = (this.props.players.length > 0 && this.props.isHost) ? 'Ready' : 'Waiting';
 
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Text style={{fontSize: 19}}>{this.props.lobbyCode}</Text>
           <ShowWhen condition={status == 'Waiting'}>
-            <TouchableOpacity disabled>
-              <Text style={[styles.nextButton, {backgroundColor: 'grey'}]}>Waiting...</Text>
-            </TouchableOpacity>
+            <Text style={[styles.nextButton, {backgroundColor: 'grey'}]}>Waiting...</Text>
           </ShowWhen>
           <ShowWhen condition={status == 'Ready'}>
-            <TouchableOpacity onPress={this.handleNext}>
+            <TouchableOpacity onPress={this.handleStart}>
               <Text style={[styles.nextButton, {backgroundColor: 'green'}]}>Start!</Text>
             </TouchableOpacity>
           </ShowWhen>
@@ -130,7 +102,6 @@ class Lobby extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    members: state.members,
     isHost: state.isHost,
     players: state.players,
     lobbyCode: state.lobbyCode
@@ -139,10 +110,6 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    setAppState: appState => dispatch({type: 'SET_APP_STATE', payload: appState}),
-    setMembers: members => dispatch({type: 'SET_MEMBERS', payload: members}),
-    setGameState: gameState => dispatch({type: 'SET_GAME_STATE', gameState: gameState}),
-    addMessage: message => dispatch({type: 'ADD_MESSAGE', message})
   };
 }
 
