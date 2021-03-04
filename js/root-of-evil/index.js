@@ -1,7 +1,8 @@
 const RESERVED_HANDLES = [
   '__everyone',
   '__host',
-  '*'
+  '__announcement_low',
+  '__announcement_high'
 ];
 
 const Roles = {
@@ -13,7 +14,16 @@ function createNew() {
   return {
     players: [],
     state: 'Created',
-    evilMembers: []
+    evilMembers: [],
+    missions: [
+      {numPeople: 2},
+      {numPeople: 2},
+      {numPeople: 3},
+      {numPeople: 3},
+      {numPeople: 3}
+    ],
+    currentMission: 0,
+    teamLead: null
   };
 }
   
@@ -71,11 +81,13 @@ function start(gameState) {
   }
 
   let { chosen } = chooseNoReplacement(gameState.players, numEvilMembers);
+  let teamLead = choose(gameState.players);
 
   let newGameState = {
     ...gameState,
     evilMembers: chosen,
-    state: 'TeamBuilding'
+    state: 'TeamBuilding',
+    teamLead
   };
 
   return {
@@ -90,11 +102,13 @@ function start(gameState) {
 function startWithConfig(gameState, config) {
   let numEvilMembers = config.numEvilMembers;
   let { chosen } = chooseNoReplacement(gameState.players, numEvilMembers);
+  let teamLead = choose(gameState.players);
 
   let newGameState = {
     ...gameState,
     evilMembers: chosen,
-    state: 'TeamBuilding'
+    state: 'TeamBuilding',
+    teamLead
   };
 
   return {
@@ -120,6 +134,10 @@ function chooseNoReplacement(arr, numToChoose) {
     finalArr: arrCopy,
     chosen
   };
+}
+
+function choose(arr) {
+  return Math.floor(Math.random() * arr.length);
 }
 
 export default {

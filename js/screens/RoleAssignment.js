@@ -18,8 +18,8 @@ import store from '../store';
 import { ShowWhen } from '../hoc';
 import { sleep, generateRandomBase64String } from '../utils';
 
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const PRIMARY = '#0D0628';
 
@@ -100,6 +100,12 @@ class RoleAssignment extends React.Component {
             type: 'NEW_GAME_STATE',
             to: '__everyone'
           });
+
+          Lobby.getCurrentLobby().send({
+            type: 'MESSAGE',
+            from: '__announcement_high',
+            text: `Team lead for mission ${this.props.currentMission} is ${this.props.players[this.props.teamLead]}. Choose ${this.props.missions[this.props.currentMission].numPeople} people to go on the mission.`
+          })
         });
     }
   }
@@ -117,7 +123,7 @@ class RoleAssignment extends React.Component {
   handleContinue = () => {
     Lobby.getCurrentLobby().send({
       type: 'MESSAGE',
-      from: '*',
+      from: '__announcement_low',
       to: '__everyone',
       text: `${this.props.handle} has joined the chat.`,
       id: generateRandomBase64String(5)
@@ -218,7 +224,11 @@ function mapStateToProps(state) {
     isHost: state.isHost,
     evilMembers: state.evilMembers,
     role: state.role,
-    handle: state.handle
+    handle: state.handle,
+    currentMission: state.currentMission,
+    teamLead: state.teamLead,
+    players: state.players,
+    missions: state.missions
   };
 }
 

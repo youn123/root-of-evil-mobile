@@ -21,8 +21,8 @@ import { connect } from 'react-redux';
 import { PRIMARY, SECONDARY } from '../settings';
 
 import { generateRandomBase64String } from '../utils';
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const fakeChat = [
   {from: 'steve', message: 'hello1', id: '0'},
@@ -48,13 +48,23 @@ const fakeChat = [
 ];
 
 function Bubble(props) {
-  if (props.from == '*') {
+  if (props.from == '__announcement_low') {
     return (
       <View style={{
         paddingHorizontal: 10,
         marginVertical: 5
       }}>
-        <Text style={styles.announcement}>{props.text}</Text>
+        <Text style={styles.announcementLow}>{props.text}</Text>
+      </View>
+    );
+  }
+  if (props.from == '__announcement_high') {
+    return (
+      <View style={{
+        paddingHorizontal: 10,
+        marginVertical: 5
+      }}>
+        <Text style={styles.announcementHigh}>{props.text}</Text>
       </View>
     );
   }
@@ -65,7 +75,24 @@ function Bubble(props) {
       marginVertical: 5
     }}>
       <Text style={{fontSize: 16, fontWeight: 'bold'}}>{props.from}</Text>
-      <Text style={props.from == '*' && styles.announcement}>{props.text}</Text>
+      <Text>{props.text}</Text>
+    </View>
+  );
+}
+
+function MissionIndicator(props) {
+  return (
+    <View style={[styles.missionIndicator, props.current && styles.missionIndicatorHighlighted]}>
+      <Text style={{fontSize: 16, textAlignVertical: 'center'}}>{props.numPeople}</Text>
+    </View>
+  );
+}
+
+function TimedText(props) {
+  return (
+    <View>
+      <Text style={{paddingHorizontal: 5, color: 'grey'}}>{props.text}</Text>
+      <View style={{width: '50%', height: 20, position: 'absolute', bottom: 0, left: 0, backgroundColor: 'black', opacity: 0.5, borderRadius: 3}} />
     </View>
   );
 }
@@ -108,10 +135,7 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 10,
     paddingLeft: 10,
-    paddingRight: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingRight: 10,
     backgroundColor: SECONDARY,
     // position: 'absolute',
     top: 0,
@@ -125,9 +149,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 10
   },
-  announcement: {
+  announcementLow: {
     fontStyle: 'italic',
     color: '#485696'
+  },
+  announcementHigh: {
+    fontStyle: 'italic',
+    color: '#F4D35E'
+  },
+  missionIndicator: {
+    backgroundColor: '#717C89',
+    borderRadius: 11,
+    height: 22,
+    width: 22,
+    marginRight: 7,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  missionIndicatorHighlighted: {
+    borderWidth: 1.5,
+    borderColor: '#F4D35E'
   }
 });
 
@@ -204,6 +245,38 @@ class MainChat extends React.Component {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
+          <View style={{
+          }}>
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <View>
+                <Icon
+                  name='people-outline'
+                  size={23}
+                  color='#485696'
+                /> 
+              </View>
+              <View style={{
+                flexDirection: 'row'
+              }}>
+                <Text style={{marginRight: 7}}>Propose team</Text>
+                <TimedText text='Private chat' />
+              </View>
+            </View>
+          </View>
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingVertical: 7
+          }}>
+            {this.props.missions.map((mission, index) => {
+              return <MissionIndicator {...mission} current={this.props.currentMission == index} />;
+            })}
+          </View>
         </View>
         <View style={{flex: 1}}>
           <FlatList
@@ -261,7 +334,7 @@ class MainChat extends React.Component {
               this.setState({text});
             }}
             placeholder='Choose your words carefully.'
-            placeholderTextColor='grey'
+            placeholderTextColor='#485696'
             multiline
             maxLength={140}
             value={this.state.text}
@@ -284,7 +357,9 @@ function mapStateToProps(state) {
     isHost: state.isHost,
     players: state.players,
     messages: state.messages,
-    handle: state.handle
+    handle: state.handle,
+    missions: state.missions,
+    currentMission: state.currentMission
   };
 }
 
