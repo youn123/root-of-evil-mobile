@@ -19,7 +19,8 @@ import {
   MainChat,
   New,
   Lobby,
-  RoleAssignment
+  RoleAssignment,
+  PrivateChat
 } from './js/screens';
 
 import { PRIMARY } from './js/settings';
@@ -52,6 +53,7 @@ class App extends React.Component {
         stack = (
           <>
             <Stack.Screen name='MainChat' component={MainChat} />
+            <Stack.Screen name='PrivateChat' component={PrivateChat} />
           </>
         );
         break;

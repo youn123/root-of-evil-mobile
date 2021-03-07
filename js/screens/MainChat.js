@@ -20,82 +20,10 @@ import { connect } from 'react-redux';
 
 import { PRIMARY, SECONDARY } from '../settings';
 
-import { generateRandomBase64String } from '../utils';
+import { generateRandomBase64String, appendAndIncrement } from '../utils';
+import TextBubble from '../components/TextBubble';
 // import Lobby from '../lobby';
 import Lobby from '../mocks/lobby';
-
-const fakeChat = [
-  {from: 'steve', message: 'hello1', id: '0'},
-  {from: 'chenchen', message: 'hello world\nhelloworld', id: '1'},
-  {from: 'steve', message: 'hello2', id: '2'},
-  {from: 'steve', message: 'hello3', id: '3'},
-  {from: 'steve', message: 'hello4', id: '4'},
-  {from: 'steve', message: 'hello5', id: '5'},
-  {from: 'steve', message: 'hello6', id: '6'},
-  {from: 'steve', message: 'hello7', id: '7'},
-  {from: 'steve', message: 'hello8', id: '8'},
-  {from: 'steve', message: 'hello9', id: '9'},
-  {from: 'steve', message: 'hello10', id: '10'},
-  {from: 'steve', message: 'hello11', id: '11'},
-  {from: 'steve', message: 'hello12', id: '12'},
-  {from: 'steve', message: 'hello13', id: '13'},
-  {from: 'steve', message: 'hello14', id: '14'},
-  {from: 'steve', message: 'hello15', id: '15'},
-  {from: 'steve', message: 'hello16', id: '16'},
-  {from: 'steve', message: 'hello17', id: '17'},
-  {from: 'steve', message: 'hello18', id: '18'},
-  {from: 'steve', message: 'hello19', id: '19'}
-];
-
-function Bubble(props) {
-  if (props.from == '__announcement_low') {
-    return (
-      <View style={{
-        paddingHorizontal: 10,
-        marginVertical: 5
-      }}>
-        <Text style={styles.announcementLow}>{props.text}</Text>
-      </View>
-    );
-  }
-  if (props.from == '__announcement_high') {
-    return (
-      <View style={{
-        paddingHorizontal: 10,
-        marginVertical: 5
-      }}>
-        <Text style={styles.announcementHigh}>{props.text}</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={{
-      paddingHorizontal: 10,
-      marginVertical: 5
-    }}>
-      <Text style={{fontSize: 16, fontWeight: 'bold'}}>{props.from}</Text>
-      <Text>{props.text}</Text>
-    </View>
-  );
-}
-
-function MissionIndicator(props) {
-  return (
-    <View style={[styles.missionIndicator, props.current && styles.missionIndicatorHighlighted]}>
-      <Text style={{fontSize: 16, textAlignVertical: 'center'}}>{props.numPeople}</Text>
-    </View>
-  );
-}
-
-function TimedText(props) {
-  return (
-    <View>
-      <Text style={{paddingHorizontal: 5, color: 'grey'}}>{props.text}</Text>
-      <View style={{width: '50%', height: 20, position: 'absolute', bottom: 0, left: 0, backgroundColor: 'black', opacity: 0.5, borderRadius: 3}} />
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {
@@ -169,13 +97,99 @@ const styles = StyleSheet.create({
   missionIndicatorHighlighted: {
     borderWidth: 1.5,
     borderColor: '#F4D35E'
+  },
+  timeGatedButtonOverlay: {
+    height: 20,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'black',
+    opacity: 0.5,
+    borderRadius: 3
   }
 });
+
+const fakeChat = [
+  {from: 'steve', message: 'hello1', id: '0'},
+  {from: 'chenchen', message: 'hello world\nhelloworld', id: '1'},
+  {from: 'steve', message: 'hello2', id: '2'},
+  {from: 'steve', message: 'hello3', id: '3'},
+  {from: 'steve', message: 'hello4', id: '4'},
+  {from: 'steve', message: 'hello5', id: '5'},
+  {from: 'steve', message: 'hello6', id: '6'},
+  {from: 'steve', message: 'hello7', id: '7'},
+  {from: 'steve', message: 'hello8', id: '8'},
+  {from: 'steve', message: 'hello9', id: '9'},
+  {from: 'steve', message: 'hello10', id: '10'},
+  {from: 'steve', message: 'hello11', id: '11'},
+  {from: 'steve', message: 'hello12', id: '12'},
+  {from: 'steve', message: 'hello13', id: '13'},
+  {from: 'steve', message: 'hello14', id: '14'},
+  {from: 'steve', message: 'hello15', id: '15'},
+  {from: 'steve', message: 'hello16', id: '16'},
+  {from: 'steve', message: 'hello17', id: '17'},
+  {from: 'steve', message: 'hello18', id: '18'},
+  {from: 'steve', message: 'hello19', id: '19'}
+];
+
+function MissionIndicator(props) {
+  return (
+    <View style={[styles.missionIndicator, props.current && styles.missionIndicatorHighlighted]}>
+      <Text style={{fontSize: 16, textAlignVertical: 'center'}}>{props.numPeople}</Text>
+    </View>
+  );
+}
+
+class TimeGatedButton extends React.Component {
+  state = {
+    width: 0,
+    disabled: false
+  }
+
+  constructor(props) {
+    super(props);
+    props.myRef && props.myRef(this);
+  }
+
+  startCountdown = () => {
+    if (this.countDown) {
+      clearInterval(this.countDown);
+    }
+
+    this.setState({width: 100, disabled: true}, () => {
+      this.countDown = setInterval(() => {
+        let newWidth = this.state.width - 10;
+
+        if (newWidth == 0) {
+          this.setState({width: newWidth, disabled: false});
+
+          clearInterval(this.countDown);
+          this.countDown = undefined;
+          this.props.onFinishCountdown();
+        } else {
+          this.setState({width: newWidth});
+        }
+      }, Math.floor(this.props.time / 10));
+    });
+  }
+
+  render() {
+    return (
+      <TouchableOpacity onPress={() => {
+        this.props.onPress && this.props.onPress();
+      }} disabled={this.state.disabled} style={{height: 20}}>
+        <Text style={{paddingHorizontal: 5, color: this.state.disabled ? 'grey' : 'white'}}>{this.props.text}</Text>
+        <View style={[styles.timeGatedButtonOverlay, {width: `${this.state.width}%`}]} />
+      </TouchableOpacity>
+    );
+  }
+}
 
 class MainChat extends React.Component {
   state = {
     text: '',
-    scrollOffset: 0
+    scrollOffset: 0,
+    endReached: true
   }
 
   componentDidMount() {
@@ -197,8 +211,11 @@ class MainChat extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.state.endReached && prevProps.messages != this.props.messages) {
-      console.log('Doh!');
       this.flatListRef.scrollToEnd();
+    }
+    if (this.props.abilityInCooldown && prevProps.abilityInCooldown != this.props.abilityInCooldown) {
+      console.log('MainChat componentDidUpdate()');
+      this.timeGatedButton.startCountdown();
     }
   }
 
@@ -210,15 +227,12 @@ class MainChat extends React.Component {
     console.log(`screen height: ${widnowHeight}`);
     console.log(`keyboard height: ${event.endCoordinates.height}`);
 
-    this.setStateAsync({keyboardHeight: event.endCoordinates.height})
-      .then(() => {
-        this.flatListRef.scrollToOffset({
-          offset: this.state.scrollOffset + this.state.keyboardHeight
-        });
-      })
+    this.flatListRef.scrollToOffset({
+      offset: this.state.scrollOffset + event.endCoordinates.height
+    });
   }
 
-  handleKeyboardDidHide = event => {
+  handleKeyboardDidHide = _ => {
     this.setState({keyboardHeight: 0});
   }
 
@@ -228,7 +242,7 @@ class MainChat extends React.Component {
       from: this.props.handle,
       to: '__everyone',
       text: this.state.text,
-      id: generateRandomBase64String(5)
+      id: appendAndIncrement(this.props.handle)
     })
       .then(() => {
         this.setState({text: ''});
@@ -263,7 +277,20 @@ class MainChat extends React.Component {
                 flexDirection: 'row'
               }}>
                 <Text style={{marginRight: 7}}>Propose team</Text>
-                <TimedText text='Private chat' />
+                <TimeGatedButton
+                  text='Private chat'
+                  time={60000}
+                  // How to properly handle 'ref is not a prop' warning?
+                  myRef={ref => {
+                    this.timeGatedButton = ref;
+                  }}
+                  onPress={() => {
+                    this.props.navigation.navigate('PrivateChat');
+                  }}
+                  onFinishCountdown={() => {
+                    this.props.setAbilityInCooldown(false);
+                  }}
+                />
               </View>
             </View>
           </View>
@@ -281,15 +308,7 @@ class MainChat extends React.Component {
         <View style={{flex: 1}}>
           <FlatList
             data={this.props.messages}
-            renderItem={({item}) => {
-              if (!item) {
-                return null;
-              }
-
-              return <Bubble {...item} />;
-            }}
-            // style={{flex: 1}}
-            // contentContainerStyle={{marginBottom: 30}}
+            renderItem={({item}) => <TextBubble {...item} />}
             keyExtractor={item => item.id}
             ref={ref => {
               this.flatListRef = ref;
@@ -359,12 +378,14 @@ function mapStateToProps(state) {
     messages: state.messages,
     handle: state.handle,
     missions: state.missions,
-    currentMission: state.currentMission
+    currentMission: state.currentMission,
+    abilityInCooldown: state.abilityInCooldown
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
+    setAbilityInCooldown: abilityInCooldown => dispatch({type: 'SET_ABILITY_IN_COOLDOWN', abilityInCooldown})
   };
 }
 

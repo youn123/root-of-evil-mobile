@@ -5,6 +5,7 @@ import MainChat from './MainChat';
 import New from './New';
 import Lobby from './Lobby';
 import RoleAssignment from './RoleAssignment';
+import PrivateChat from './PrivateChat';
 
 module.exports = {
   Home,
@@ -13,5 +14,6 @@ module.exports = {
   MainChat,
   New,
   Lobby,
-  RoleAssignment
+  RoleAssignment,
+  PrivateChat
 };

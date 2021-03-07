@@ -5,7 +5,10 @@ const INITIAL_STATE = {
   handle: '',
   messages: [],
   role: null,
-  evilMembers: ['steve', 'chenchen', 'qin', 'Youn']
+  evilMembers: ['steve', 'chenchen', 'qin', 'Youn'],
+  privateChatJoined: null,
+  privateMessages: [],
+  abilityInCooldown: false
 };
 
 export default function reducer(state = INITIAL_STATE, action) {
@@ -49,12 +52,48 @@ export default function reducer(state = INITIAL_STATE, action) {
         ...state,
         role: action.role
       };
+    case 'JOIN_PRIVATE_CHAT':
+      return {
+        ...state,
+        privateChatJoined: action.chatRoomId
+      };
+    case 'LEAVE_PRIVATE_CHAT':
+      return {
+        ...state,
+        privateChatJoined: null,
+        privateMessages: [],
+        abilityInCooldown: true
+      }
+    case 'ADD_PRIVATE_MESSAGE':
+      return {
+        ...state,
+        privateMessages: [...state.privateMessages, action.message]
+      };
+    case 'SET_ABILITY_IN_COOLDOWN':
+      return {
+        ...state,
+        abilityInCooldown: action.abilityInCooldown
+      };
+    case 'SET_PRIVATE_CHAT_JOINED':
+      return {
+        ...state,
+        privateChatJoined: action.privateChatJoined
+      };
   }
 
   return state;
 }
 
 export function getGameStateFromStore(store) {
-  let { appState, lobbyCode, isHost, handle, messages, role, ...gameState } = store;
+  let {
+    appState,
+    lobbyCode,
+    isHost,
+    handle,
+    messages,
+    role,
+    ...gameState
+  } = store;
+
   return gameState;
 }

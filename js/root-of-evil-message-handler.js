@@ -7,6 +7,7 @@ export function hostHandleRootOfEvilMessage(messages, lobby, store) {
   let finalGameState;
 
   for (let message of messages) {
+    // Handle host-specific messages first
     switch (message.type) {
       case 'NEW_GAME_STATE':
         // I'm host, so I already have the latest game state
@@ -17,17 +18,8 @@ export function hostHandleRootOfEvilMessage(messages, lobby, store) {
 
         lobby.respondTo(message, response);
         break;
-      case 'MESSAGE':
-        store.dispatch({
-          type: 'ADD_MESSAGE',
-          message
-        });
-        break;
-      case 'START_GAME':
-        store.dispatch({
-          type: 'SET_APP_STATE',
-          appState: 'RoleAssignment'
-        });
+      default:
+        clientHandleRootOfEvilMessage([message], lobby, store);
         break;
     }
   }
@@ -49,34 +41,45 @@ export function hostHandleRootOfEvilMessage(messages, lobby, store) {
 export function clientHandleRootOfEvilMessage(messages, lobby, store) {
   for (let message of messages) {
     message = removeMetadata(message);
-    console.log(message);
 
-    let type = message.type;
-
-    delete message.type;
-    delete message.to;
+    let { type, to, ...gameState } = message;
 
     switch (type) {
       case 'NEW_GAME_STATE':
-
         store.dispatch({
           type: 'SET_GAME_STATE',
-          gameState: message
+          gameState
         });
         break;
       case 'JOIN':
         break;
       case 'MESSAGE':
-        store.dispatch({
-          type: 'ADD_MESSAGE',
-          message
-        });
+        if (to == '__everyone') {
+          store.dispatch({
+            type: 'ADD_MESSAGE',
+            message
+          });
+        } else if (to === store.getState().privateChatJoined) {
+          store.dispatch({
+            type: 'ADD_PRIVATE_MESSAGE',
+            message
+          });
+        }
         break;
       case 'START_GAME':
         store.dispatch({
           type: 'SET_APP_STATE',
           appState: 'RoleAssignment'
         });
+        break;
+      case 'TERMINATE_PRIVATE_CHAT':
+        console.log('TERMINATE_PRIVATE_CHAT');
+        if (to === store.getState().privateChatJoined) {
+          store.dispatch({
+            type: 'SET_PRIVATE_CHAT_JOINED',
+            privateChatJoined: 'Terminated'
+          });
+        }
         break;
     }
   }

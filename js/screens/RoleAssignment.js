@@ -104,6 +104,7 @@ class RoleAssignment extends React.Component {
           Lobby.getCurrentLobby().send({
             type: 'MESSAGE',
             from: '__announcement_high',
+            to: '__everyone',
             text: `Team lead for mission ${this.props.currentMission} is ${this.props.players[this.props.teamLead]}. Choose ${this.props.missions[this.props.currentMission].numPeople} people to go on the mission.`
           })
         });
@@ -187,35 +188,6 @@ class RoleAssignment extends React.Component {
         </SafeAreaView>
       );
     }
-
-    // return (
-    //   <SafeAreaView style={styles.container}>
-    //     <View style={styles.header}>
-    //       <Text style={{fontSize: 19}}>{this.props.lobbyCode}</Text>
-    //       <ShowWhen condition={status == 'Waiting'}>
-    //         <TouchableOpacity disabled>
-    //           <Text style={[styles.nextButton, {backgroundColor: 'grey'}]}>Waiting...</Text>
-    //         </TouchableOpacity>
-    //       </ShowWhen>
-    //       <ShowWhen condition={status == 'Ready'}>
-    //         <TouchableOpacity onPress={this.handleNext}>
-    //           <Text style={[styles.nextButton, {backgroundColor: 'green'}]}>Start!</Text>
-    //         </TouchableOpacity>
-    //       </ShowWhen>
-    //     </View>
-    //     <View style={{marginTop: 20}}>
-    //       <ShowWhen condition={this.props.players.length == 1}>
-    //         <Text>1 person has joined.</Text>
-    //       </ShowWhen>
-    //       <ShowWhen condition={this.props.players.length > 1}>
-    //         <Text>{this.props.players.length} people have joined.</Text>
-    //       </ShowWhen>
-    //       <ScrollView contentContainerStyle={{width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-evenly', marginTop: 10}}>
-    //         {this.props.players.map(player => <Text style={{marginHorizontal: 10, fontSize: 18, marginTop: 10}} key={player}>{player}</Text>)}
-    //       </ScrollView>
-    //     </View>
-    //   </SafeAreaView>
-    // );
   }
 };
 
