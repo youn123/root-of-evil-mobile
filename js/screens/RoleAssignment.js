@@ -15,8 +15,8 @@ import { connect } from 'react-redux';
 import RootOfEvil from '../root-of-evil';
 import { getGameStateFromStore } from '../reducer';
 import store from '../store';
-import { ShowWhen } from '../hoc';
 import { sleep, generateRandomBase64String } from '../utils';
+import { Handles } from '../components';
 
 // import Lobby from '../lobby';
 import Lobby from '../mocks/lobby';
@@ -43,42 +43,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 5,
     borderRadius: 5
-  },
-  name: {
-    color: 'red'
   }
 });
-
-function joinNames(names) {
-  let texts = [];
-
-  if (names.length == 0) {
-    return '';
-  }
-  if (names.length == 1) {
-    return names[0];
-  }
-  if (names.length == 2) {
-    return (
-      <Text>
-        <Text style={styles.name}>{names[0]}</Text> and <Text style={styles.name}>{names[1]}</Text>
-      </Text>
-    );
-  }
-
-  for (let i = 0; i < names.length - 1; i++) {
-    texts.push(<Text style={styles.name}>{names[i]}</Text>);
-    texts.push(<Text>, </Text>);
-  }
-
-  return (
-    <Text>
-      {texts}
-      <Text>and </Text>
-      <Text style={styles.name}>{names[names.length - 1]}</Text>
-    </Text>
-  );
-}
 
 class RoleAssignment extends React.Component {
   state = {
@@ -160,7 +126,7 @@ class RoleAssignment extends React.Component {
             Your job is to sabotage the FBI from within.
           </Text>
           <Text>
-            Work closely with {joinNames(this.props.evilMembers.filter(name => name != this.props.handle))}.
+            Work closely with <Handles names={this.props.evilMembers.filter(name => name != this.props.handle)} nameColor='red' />.
           </Text>
           <TouchableOpacity
             style={{alignSelf: 'center', marginTop: 20}}

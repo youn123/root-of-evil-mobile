@@ -18,7 +18,7 @@ import { PRIMARY, SECONDARY } from '../settings';
 
 import { sleep, appendAndIncrement } from '../utils';
 import PrivateChatManager from '../root-of-evil/private-chat';
-import { TextBubble, RetroLoadingIndicator } from '../components';
+import { TextBubble, RetroLoadingIndicator, Handles } from '../components';
 
 // import Lobby from '../lobby';
 import Lobby from '../mocks/lobby';
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: PRIMARY
   },
-  nextButton: {
+  borderButton: {
     color: 'white',
     borderColor: 'white',
     borderWidth: 1,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
 
 class PrivateChat extends React.Component {
   state = {
-    screenState: 'Select', // enum('Select', 'Loading', 'Connected', 'Failed', 'Terminated')
+    screenState: 'Select', // enum('Select', 'Loading', 'Connected', 'Rejected', 'Terminated', 'Requested')
     selected: {},
     logs: [],
     text: '',
@@ -93,7 +93,9 @@ class PrivateChat extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.privateChatJoined) {
+    if (this.props.privateChatLifeCycleState.type == 'Requested') {
+      this.setState({screenState: 'Requested'});
+    } else if (this.props.privateChatLifeCycleState.type == 'Connected') {
       this.setState({screenState: 'Connected'});
     }
 
@@ -111,11 +113,15 @@ class PrivateChat extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (this.props.privateChatJoined === 'Terminated' && prevProps.privateChatJoined !== this.props.privateChatJoined) {
-      console.log('PrivateChat componentDidUpdate()');
+    if (prevProps.privateChatLifeCycleState.type == 'Requested' && this.props.privateChatLifeCycleState.type == 'Connected') {
+      this.setState({screenState: 'Connected'});
+    }
+
+    if (this.props.privateChatLifeCycleState.type === 'None' && prevProps.privateChatLifeCycleState !== this.props.privateChatLifeCycleState) {
       this.setState({screenState: 'Terminated'});
-      this.props.leavePrivateChat();
-    } else if (this.state.endReached && prevProps.messages != this.props.messages) {
+    }
+    
+    if (this.state.endReached && prevProps.messages != this.props.messages) {
       this.flatListRef && this.flatListRef.scrollToEnd();
     }
   }
@@ -153,7 +159,8 @@ class PrivateChat extends React.Component {
     let connectReqs = [];
     let chatRoomId = PrivateChatManager.newChatRoomId(this.props.handle);
 
-    this.props.joinPrivateChat(chatRoomId);
+    this.props.setPrivateChatId(chatRoomId);
+    this.props.setPrivateChatLifeCycleState({type: 'Requested', chatRoomId});
 
     for (let member in this.state.selected) {
       connectReqs.push(
@@ -161,6 +168,7 @@ class PrivateChat extends React.Component {
           type: 'REQUEST_PRIVATE_CHAT',
           from: this.props.handle,
           to: member,
+          others: this.state.selected,
           chatRoomId
         }, true)
       );
@@ -170,29 +178,16 @@ class PrivateChat extends React.Component {
 
     for (let req of connectReqs) {
       await req.then(res => {
-        let announcementMessage;
-
         if (res.result == 'Accepted') {
           atLeastOneAccepted = true;
           this.setState({
             logs: [...this.state.logs, `${res.from}.....Accepted`]
           });
-
-          announcementMessage = `${res.from} has joined the chat.`;
         } else {
           this.setState({
             logs: [...this.state.logs, `${res.from}.....Rejected`]
           });
-
-          announcementMessage = `${res.from} refused to connect.`;
         }
-
-        Lobby.getCurrentLobby().send({
-          type: 'MESSAGE',
-          from: '__announcement_low',
-          to: chatRoomId,
-          text: announcementMessage
-        });
       })
         .catch(err => {
           console.log(err);
@@ -200,23 +195,44 @@ class PrivateChat extends React.Component {
     }
 
     if (atLeastOneAccepted) {
-      sleep(500)
+      Lobby.getCurrentLobby().send({
+        type: 'ESTABLISHED_PRIVATE_CHAT',
+        from: this.props.handle,
+        to: chatRoomId
+      }).then(() => {
+        return sleep(500);
+      })
         .then(() => {
           this.setState({screenState: 'Connected'});
         });
+    } else {
+      this.setState({screenState: 'Rejected'});
     }
-    // } else {
-    //   this.setState({
-    //     screenState: 'Failed'
-    //   });
-    // }
+  }
+
+  handleAccept = () => {
+    Lobby.getCurrentLobby().respondTo(this.props.privateChatLifeCycleState.request, {
+      result: 'Accepted',
+      from: this.props.handle
+    });
+  }
+
+  handleReject = () => {
+    Lobby.getCurrentLobby().respondTo(this.props.privateChatLifeCycleState.request, {
+      result: 'Rejected',
+      from: this.props.handle
+    })
+      .then(() => {
+        this.props.clearPrivateChat();
+        this.props.navigation.goBack();
+      });
   }
 
   handleSendMessage = () => {
     Lobby.getCurrentLobby().send({
       type: 'MESSAGE',
       from: this.props.handle,
-      to: this.props.privateChatJoined,
+      to: this.props.privateChatId,
       text: this.state.text,
       id: appendAndIncrement(this.props.handle)
     })
@@ -229,7 +245,7 @@ class PrivateChat extends React.Component {
     Lobby.getCurrentLobby().send({
       type: 'TERMINATE_PRIVATE_CHAT',
       from: this.props.handle,
-      to: this.props.privateChatJoined
+      to: this.props.privateChatId
     })
       .then(() => {
         this.setState({screenState: 'Terminated'});
@@ -295,7 +311,7 @@ class PrivateChat extends React.Component {
             style={{alignSelf: 'center', marginTop: 20}}
             onPress={this.handleConnect}
           >
-            <Text style={styles.nextButton}>Connect</Text>
+            <Text style={styles.borderButton}>Connect</Text>
           </TouchableOpacity>
         </>
       );
@@ -321,6 +337,46 @@ class PrivateChat extends React.Component {
             flex: 1
           }}>
             <Text>Chat has been terminated.</Text>
+          </View>
+        </>
+      );
+    } else if (this.state.screenState == 'Rejected') {
+      content = (
+        <>
+          <View style={{
+            paddingHorizontal: 20,
+            marginTop: 20,
+            flex: 1
+          }}>
+            <Text>Everyone has rejected.</Text>
+          </View>
+        </>
+      );
+    } else if (this.state.screenState == 'Requested') {
+      content = (
+        <>
+          <View style={{
+            paddingHorizontal: 20,
+            marginTop: 20,
+            flex: 1
+          }}>
+            <Text>
+              <Handles names={[this.props.privateChatLifeCycleState.from]} nameColor='red' />
+              has requested a private connection with
+              <Handles names={[...this.props.privateChatLifeCycleState.others, 'you']} nameColor = 'red' />.
+            </Text>
+            <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 20}}>
+            <TouchableOpacity
+              onPress={this.handleAccept}
+            >
+              <Text style={styles.borderButton}>Accept</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={this.handleReject}
+            >
+              <Text style={styles.borderButton}>Reject</Text>
+            </TouchableOpacity>
+            </View>
           </View>
         </>
       );
@@ -417,14 +473,16 @@ function mapStateToProps(state) {
     messages: state.privateMessages,
     handle: state.handle,
     evilMembers: state.evilMembers,
-    privateChatJoined: state.privateChatJoined
+    privateChatId: state.privateChatId,
+    privateChatLifeCycleState: state.privateChatLifeCycleState
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    joinPrivateChat: chatRoomId => dispatch({type: 'JOIN_PRIVATE_CHAT', chatRoomId}),
-    leavePrivateChat: () => dispatch({type: 'LEAVE_PRIVATE_CHAT'})
+    setPrivateChatId: privateChatId => dispatch({type: 'SET_PRIVATE_CHAT_ID', privateChatId}),
+    setPrivateChatLifeCycleState: privateChatLifeCycleState => dispatch({type: 'SET_PRIVATE_CHAT_LIFE_CYCLE_STATE', privateChatLifeCycleState}),
+    clearPrivateChat: () => dispatch({type: 'CLEAR_PRIVATE_CHAT'})
   };
 }
 

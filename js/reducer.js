@@ -6,7 +6,8 @@ const INITIAL_STATE = {
   messages: [],
   role: null,
   evilMembers: ['steve', 'chenchen', 'qin', 'Youn'],
-  privateChatJoined: null,
+  privateChatId: null,
+  privateChatLifeCycleState: {type: 'None'},
   privateMessages: [],
   abilityInCooldown: false
 };
@@ -52,32 +53,32 @@ export default function reducer(state = INITIAL_STATE, action) {
         ...state,
         role: action.role
       };
-    case 'JOIN_PRIVATE_CHAT':
-      return {
-        ...state,
-        privateChatJoined: action.chatRoomId
-      };
-    case 'LEAVE_PRIVATE_CHAT':
-      return {
-        ...state,
-        privateChatJoined: null,
-        privateMessages: [],
-        abilityInCooldown: true
-      }
-    case 'ADD_PRIVATE_MESSAGE':
-      return {
-        ...state,
-        privateMessages: [...state.privateMessages, action.message]
-      };
     case 'SET_ABILITY_IN_COOLDOWN':
       return {
         ...state,
         abilityInCooldown: action.abilityInCooldown
       };
-    case 'SET_PRIVATE_CHAT_JOINED':
+    case 'SET_PRIVATE_CHAT_LIFE_CYCLE_STATE':
       return {
         ...state,
-        privateChatJoined: action.privateChatJoined
+        privateChatLifeCycleState: action.privateChatLifeCycleState
+      };
+    case 'SET_PRIVATE_CHAT_ID':
+      return {
+        ...state,
+        privateChatId: action.privateChatId
+      };
+    case 'CLEAR_PRIVATE_CHAT':
+      return {
+        ...state,
+        privateChatId: null,
+        privateMessages: [],
+        privateChatLifeCycleState: {type: 'None'}
+      };
+    case 'ADD_PRIVATE_MESSAGE':
+      return {
+        ...state,
+        privateMessages: [...state.privateMessages, action.message]
       };
   }
 

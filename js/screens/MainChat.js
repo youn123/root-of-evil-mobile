@@ -213,9 +213,13 @@ class MainChat extends React.Component {
     if (this.state.endReached && prevProps.messages != this.props.messages) {
       this.flatListRef.scrollToEnd();
     }
-    if (this.props.abilityInCooldown && prevProps.abilityInCooldown != this.props.abilityInCooldown) {
-      console.log('MainChat componentDidUpdate()');
+
+    if (this.props.privateChatLifeCycleState.type == 'None' && prevProps.privateChatLifeCycleState.type == 'Connected') {
       this.timeGatedButton.startCountdown();
+    }
+
+    if (this.props.privateChatLifeCycleState.type == 'Requested' && prevProps.privateChatLifeCycleState != this.props.privateChatLifeCycleState) {
+      this.props.navigation.navigate('PrivateChat');
     }
   }
 
@@ -379,7 +383,8 @@ function mapStateToProps(state) {
     handle: state.handle,
     missions: state.missions,
     currentMission: state.currentMission,
-    abilityInCooldown: state.abilityInCooldown
+    abilityInCooldown: state.abilityInCooldown,
+    privateChatLifeCycleState: state.privateChatLifeCycleState
   };
 }
 
