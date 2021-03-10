@@ -22,8 +22,8 @@ import { PRIMARY, SECONDARY } from '../settings';
 
 import { generateRandomBase64String, appendAndIncrement } from '../utils';
 import TextBubble from '../components/TextBubble';
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {

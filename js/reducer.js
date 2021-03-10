@@ -73,7 +73,8 @@ export default function reducer(state = INITIAL_STATE, action) {
         ...state,
         privateChatId: null,
         privateMessages: [],
-        privateChatLifeCycleState: {type: 'None'}
+        privateChatLifeCycleState: {type: 'None'},
+        abilityInCooldown: true
       };
     case 'ADD_PRIVATE_MESSAGE':
       return {
@@ -93,6 +94,9 @@ export function getGameStateFromStore(store) {
     handle,
     messages,
     role,
+    privateChatId,
+    privateChatLifeCycleState,
+    abilityInCooldown,
     ...gameState
   } = store;
 

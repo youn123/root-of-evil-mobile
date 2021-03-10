@@ -39,8 +39,8 @@ export default function Bubble(props) {
 
   return (
     <View style={styles.bubble} key={props.id}>
-      <Text style={styles.handle}>{props.from}</Text>
-      <Text>{props.text}</Text>
+      <Text style={[styles.handle, props.handleStyle]}>{props.from}</Text>
+      <Text style={props.textStyle}>{props.text}</Text>
     </View>
   );
 }

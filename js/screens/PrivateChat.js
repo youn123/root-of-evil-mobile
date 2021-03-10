@@ -20,8 +20,9 @@ import { sleep, appendAndIncrement } from '../utils';
 import PrivateChatManager from '../root-of-evil/private-chat';
 import { TextBubble, RetroLoadingIndicator, Handles } from '../components';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+import { ShowWhen } from '../hoc';
+// import Lobby from '../mocks/lobby';
 
 const fakeEvilMembers = ['qin', 'youn', 'steve'];
 
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
 
 class PrivateChat extends React.Component {
   state = {
-    screenState: 'Select', // enum('Select', 'Loading', 'Connected', 'Rejected', 'Terminated', 'Requested')
+    screenState: 'Select', // enum('Select', 'Loading', 'Connected', 'Rejected', 'Terminated', 'Requested', 'Left')
     selected: {},
     logs: [],
     text: '',
@@ -94,7 +95,11 @@ class PrivateChat extends React.Component {
 
   componentDidMount() {
     if (this.props.privateChatLifeCycleState.type == 'Requested') {
-      this.setState({screenState: 'Requested'});
+      if (this.props.privateChatLifeCycleState.hasTerminatePrivilege) {
+        this.setState({screenState: 'Loading'});
+      } else {
+        this.setState({screenState: 'Requested'});
+      }
     } else if (this.props.privateChatLifeCycleState.type == 'Connected') {
       this.setState({screenState: 'Connected'});
     }
@@ -117,7 +122,7 @@ class PrivateChat extends React.Component {
       this.setState({screenState: 'Connected'});
     }
 
-    if (this.props.privateChatLifeCycleState.type === 'None' && prevProps.privateChatLifeCycleState !== this.props.privateChatLifeCycleState) {
+    if (this.props.privateChatLifeCycleState.type === 'None' && prevProps.privateChatLifeCycleState.type == 'Connected') {
       this.setState({screenState: 'Terminated'});
     }
     
@@ -159,8 +164,7 @@ class PrivateChat extends React.Component {
     let connectReqs = [];
     let chatRoomId = PrivateChatManager.newChatRoomId(this.props.handle);
 
-    this.props.setPrivateChatId(chatRoomId);
-    this.props.setPrivateChatLifeCycleState({type: 'Requested', chatRoomId});
+    this.props.setPrivateChatLifeCycleState({type: 'Requested', chatRoomId, hasTerminatePrivilege: true});
 
     for (let member in this.state.selected) {
       connectReqs.push(
@@ -168,7 +172,7 @@ class PrivateChat extends React.Component {
           type: 'REQUEST_PRIVATE_CHAT',
           from: this.props.handle,
           to: member,
-          others: this.state.selected,
+          others: Object.keys(this.state.selected),
           chatRoomId
         }, true)
       );
@@ -178,6 +182,7 @@ class PrivateChat extends React.Component {
 
     for (let req of connectReqs) {
       await req.then(res => {
+        console.log(`res: ${res.result} ${res.from}`);
         if (res.result == 'Accepted') {
           atLeastOneAccepted = true;
           this.setState({
@@ -207,10 +212,13 @@ class PrivateChat extends React.Component {
         });
     } else {
       this.setState({screenState: 'Rejected'});
+      this.props.setPrivateChatLifeCycleState({type: 'None'});
     }
   }
 
   handleAccept = () => {
+    this.setState({screenState: 'Loading'});
+
     Lobby.getCurrentLobby().respondTo(this.props.privateChatLifeCycleState.request, {
       result: 'Accepted',
       from: this.props.handle
@@ -218,6 +226,8 @@ class PrivateChat extends React.Component {
   }
 
   handleReject = () => {
+    this.setState({screenState: 'Left'});
+
     Lobby.getCurrentLobby().respondTo(this.props.privateChatLifeCycleState.request, {
       result: 'Rejected',
       from: this.props.handle
@@ -292,7 +302,7 @@ class PrivateChat extends React.Component {
               marginTop: 20,
               paddingHorizontal: 20
             }}>
-              {fakeEvilMembers.map(member => {
+              {this.props.players.map(member => {
                 return (
                   <TouchableOpacity
                     onPress={() => {
@@ -361,9 +371,7 @@ class PrivateChat extends React.Component {
             flex: 1
           }}>
             <Text>
-              <Handles names={[this.props.privateChatLifeCycleState.from]} nameColor='red' />
-              has requested a private connection with
-              <Handles names={[...this.props.privateChatLifeCycleState.others, 'you']} nameColor = 'red' />.
+              <Handles names={[this.props.privateChatLifeCycleState.from]} nameColor='red' /> has requested a private connection with <Handles names={[...this.props.privateChatLifeCycleState.others, 'you']} nameColor = 'red' />.
             </Text>
             <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 20}}>
             <TouchableOpacity
@@ -377,6 +385,18 @@ class PrivateChat extends React.Component {
               <Text style={styles.borderButton}>Reject</Text>
             </TouchableOpacity>
             </View>
+          </View>
+        </>
+      );
+    } else if (this.state.screenState == 'Left') {
+      content = (
+        <>
+          <View style={{
+            paddingHorizontal: 20,
+            marginTop: 20,
+            flex: 1
+          }}>
+            <Text>You left the chat.</Text>
           </View>
         </>
       );
@@ -419,14 +439,32 @@ class PrivateChat extends React.Component {
               color='#485696'
             /> 
           </TouchableOpacity>
-          <TouchableOpacity onPress={this.handleTerminate}>
-            <Text style={{color: 'red'}}>Terminate</Text>
-          </TouchableOpacity>
+          <ShowWhen condition={this.props.privateChatLifeCycleState.hasTerminatePrivilege}>
+            <TouchableOpacity onPress={this.handleTerminate}>
+              <Text style={{color: 'red'}}>Terminate</Text>
+            </TouchableOpacity>
+          </ShowWhen>
+          <ShowWhen condition={!this.props.privateChatLifeCycleState.hasTerminatePrivilege}>
+            <TouchableOpacity onPress={() => {
+              this.setState({screenState: 'Left'});
+
+              Lobby.getCurrentLobby().send({
+                type: 'MESSAGE',
+                from: '__announcement_low',
+                to: this.props.privateChatId,
+                text: `${this.props.handle} has left the chat.`
+              });
+
+              this.props.clearPrivateChat();
+            }}>
+              <Text style={{color: 'red'}}>Leave</Text>
+            </TouchableOpacity>
+          </ShowWhen>
         </View>
         <View style={{flex: 1}}>
           <FlatList
             data={this.props.messages}
-            renderItem={({item}) => <TextBubble {...item} />}
+            renderItem={({item}) => <TextBubble handleStyle={{color: '#58fcec'}} textStyle={{color: '#58fcec'}} {...item} />}
             keyExtractor={item => item.id}
             ref={ref => {
               this.flatListRef = ref;

@@ -78,26 +78,36 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
         }
         break;
       case 'REQUEST_PRIVATE_CHAT':
+        console.log(`${store.getState().handle} received REQUEST_PRIVATE_CHAT`);
+        console.log(store.getState().privateChatLifeCycleState);
+
+        if (to != store.getState().handle) {
+          break;
+        }
+
         if (store.getState().privateChatLifeCycleState.type != 'None') {
           lobby.respondTo(message, {
             result: 'Rejected',
             from: store.getState().handle
           });
-          break;
-        }
-
-        if (to == store.getState().handle) {
-          store.dispatch({
-            type: 'SET_PRIVATE_CHAT_LIFE_CYCLE_STATE',
-            privateChatLifeCycleState: {
-              type: 'Requested',
-              request: message,
-              chatRoomId: message.chatRoomId,
-              from,
-              others: message.others.filter(name => name != store.getState().handle)
-            }
+        } else if (store.getState().abilityInCooldown) {
+          lobby.respondTo(message, {
+            result: 'Rejected',
+            from: store.getState().handle
           });
         }
+
+        store.dispatch({
+          type: 'SET_PRIVATE_CHAT_LIFE_CYCLE_STATE',
+          privateChatLifeCycleState: {
+            type: 'Requested',
+            request: message,
+            chatRoomId: message.chatRoomId,
+            from,
+            others: message.others.filter(name => name != store.getState().handle),
+            hasTerminatePrivilege: false
+          }
+        });
       case 'ESTABLISHED_PRIVATE_CHAT':
         console.log('received ESTABLISHED_PRIVATE_CHAT');
 
@@ -111,7 +121,7 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
             });
             store.dispatch({
               type: 'SET_PRIVATE_CHAT_LIFE_CYCLE_STATE',
-              privateChatLifeCycleState: {type: 'Connected'}
+              privateChatLifeCycleState: {type: 'Connected', hasTerminatePrivilege: store.getState().privateChatLifeCycleState.hasTerminatePrivilege}
             });
 
             lobby.send({

@@ -18,8 +18,8 @@ import store from '../store';
 import { sleep, generateRandomBase64String } from '../utils';
 import { Handles } from '../components';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const PRIMARY = '#0D0628';
 
