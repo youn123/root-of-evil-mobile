@@ -6,6 +6,7 @@ import New from './New';
 import Lobby from './Lobby';
 import RoleAssignment from './RoleAssignment';
 import PrivateChat from './PrivateChat';
+import Hack from './Hack';
 
 module.exports = {
   Home,
@@ -15,5 +16,6 @@ module.exports = {
   New,
   Lobby,
   RoleAssignment,
-  PrivateChat
+  PrivateChat,
+  Hack
 };

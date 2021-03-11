@@ -1,3 +1,5 @@
+import { ActionSheetIOS } from "react-native";
+
 const INITIAL_STATE = {
   appState: 'Menu', // enum('Menu', 'Lobby', 'RoleAssignment', 'InGame'),
   lobbyCode: '',
@@ -9,7 +11,8 @@ const INITIAL_STATE = {
   privateChatId: null,
   privateChatLifeCycleState: {type: 'None'},
   privateMessages: [],
-  abilityInCooldown: false
+  abilityInCooldown: false,
+  numHacksRemaining: 7
 };
 
 export default function reducer(state = INITIAL_STATE, action) {
@@ -81,6 +84,16 @@ export default function reducer(state = INITIAL_STATE, action) {
         ...state,
         privateMessages: [...state.privateMessages, action.message]
       };
+    case 'SET_NUM_HACKS_REMAINING':
+      return {
+        ...state,
+        numHacksRemaining: action.numHacks
+      };
+    case 'SET_PRIVATE_MESSAGES':
+      return {
+        ...state,
+        privateMessages: action.messages
+      };
   }
 
   return state;
@@ -97,6 +110,7 @@ export function getGameStateFromStore(store) {
     privateChatId,
     privateChatLifeCycleState,
     abilityInCooldown,
+    numHacksRemaining,
     ...gameState
   } = store;
 

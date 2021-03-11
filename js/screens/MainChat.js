@@ -20,10 +20,12 @@ import { connect } from 'react-redux';
 
 import { PRIMARY, SECONDARY } from '../settings';
 
-import { generateRandomBase64String, appendAndIncrement } from '../utils';
+import { nextId } from '../utils';
 import TextBubble from '../components/TextBubble';
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+import { ShowWhen } from '../hoc';
+import RootOfEvil from '../root-of-evil';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -246,7 +248,7 @@ class MainChat extends React.Component {
       from: this.props.handle,
       to: '__everyone',
       text: this.state.text,
-      id: appendAndIncrement(this.props.handle)
+      id: `${this.props.handle}-${nextId()}`
     })
       .then(() => {
         this.setState({text: ''});
@@ -281,20 +283,47 @@ class MainChat extends React.Component {
                 flexDirection: 'row'
               }}>
                 <Text style={{marginRight: 7}}>Propose team</Text>
-                <TimeGatedButton
-                  text='Private chat'
-                  time={60000}
-                  // How to properly handle 'ref is not a prop' warning?
-                  myRef={ref => {
-                    this.timeGatedButton = ref;
-                  }}
-                  onPress={() => {
-                    this.props.navigation.navigate('PrivateChat');
-                  }}
-                  onFinishCountdown={() => {
-                    this.props.setAbilityInCooldown(false);
-                  }}
-                />
+                <ShowWhen condition={this.props.role == RootOfEvil.Roles.FBI}>
+                  <TimeGatedButton
+                    text='Private chat'
+                    time={60000}
+                    // How to properly handle 'ref is not a prop' warning?
+                    myRef={ref => {
+                      this.timeGatedButton = ref;
+                    }}
+                    onPress={() => {
+                      this.props.navigation.navigate('PrivateChat');
+                    }}
+                    onFinishCountdown={() => {
+                      this.props.setAbilityInCooldown(false);
+                    }}
+                  />
+                </ShowWhen>
+                <ShowWhen condition={this.props.role == RootOfEvil.Roles.RootOfEvil}>
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center'
+                  }}>
+                    <TouchableOpacity
+                      disabled={this.props.numHacksRemaining == 0}
+                      onPress={() => {
+                        if (this.props.privateChatLifeCycleState.type == 'None') {
+                          this.props.setNumHacksRemaining(this.props.numHacksRemaining - 1);
+                        }
+                        this.props.navigation.navigate('Hack');
+                      }}
+                    >
+                      <Text style={{marginRight: 3, color: this.props.numHacksRemaining == 0 ? 'grey' : 'white'}}>Hack</Text>
+                    </TouchableOpacity>
+                    <View style={{
+                      backgroundColor: 'grey',
+                      paddingHorizontal: 2,
+                      borderRadius: 2
+                    }}>
+                      <Text>{this.props.numHacksRemaining}</Text>
+                    </View>
+                  </View>
+                </ShowWhen>
               </View>
             </View>
           </View>
@@ -384,13 +413,16 @@ function mapStateToProps(state) {
     missions: state.missions,
     currentMission: state.currentMission,
     abilityInCooldown: state.abilityInCooldown,
-    privateChatLifeCycleState: state.privateChatLifeCycleState
+    privateChatLifeCycleState: state.privateChatLifeCycleState,
+    role: state.role,
+    numHacksRemaining: state.numHacksRemaining
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    setAbilityInCooldown: abilityInCooldown => dispatch({type: 'SET_ABILITY_IN_COOLDOWN', abilityInCooldown})
+    setAbilityInCooldown: abilityInCooldown => dispatch({type: 'SET_ABILITY_IN_COOLDOWN', abilityInCooldown}),
+    setNumHacksRemaining: numHacks => dispatch({type: 'SET_NUM_HACKS_REMAINING', numHacks})
   };
 }
 

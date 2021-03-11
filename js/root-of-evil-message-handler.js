@@ -1,6 +1,7 @@
 import RootOfEvil from './root-of-evil';
 import { getGameStateFromStore } from './reducer';
 import { removeMetadata } from './lobby'; 
+import PrivateChat from './screens/PrivateChat';
 
 export function hostHandleRootOfEvilMessage(messages, lobby, store) {
   console.log(`Host received ${messages.length} messages.`);
@@ -114,7 +115,7 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
         if (store.getState().privateChatLifeCycleState.type == 'Requested') {
           let chatRoomId = store.getState().privateChatLifeCycleState.chatRoomId;
 
-          if (message.to == chatRoomId) {
+          if (to == chatRoomId) {
             store.dispatch({
               type: 'SET_PRIVATE_CHAT_ID',
               privateChatId: chatRoomId
@@ -131,6 +132,33 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
               text: `${store.getState().handle} has joined the chat.`
             });
           }
+        }
+        break;
+      case 'HACK':
+        if (store.getState().role != RootOfEvil.Roles.RootOfEvil) {
+          lobby.respondTo(message, {
+            result: 'Rejected',
+            from: store.getState().handle
+          });
+        }
+
+        if (to != store.getState().handle) {
+          break;
+        }
+
+        let { chatRoomId, messages } = PrivateChatStore.get();
+        if (chatRoomId) {
+          lobby.respondTo(message, {
+            result: 'Accepted',
+            chatRoomId,
+            messages,
+            from: store.getState().handle
+          });
+        } else {
+          lobby.respondTo(message, {
+            result: 'Rejected',
+            from: store.getState().handle
+          });
         }
         break;
     }

@@ -16,3 +16,7 @@ export function generateRandomBase64String(length) {
 export function appendAndIncrement(str) {
   return `${str}-${num++}`;
 }
+
+export function nextId() {
+  return num++;
+}

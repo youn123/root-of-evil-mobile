@@ -27,7 +27,7 @@ class Lobby {
     if (returnResponse) {
       return sleep(1000)
         .then(() => {
-          return {result: 'Accepted', from: message.to};
+          return {result: 'Accepted', from: message.to, messages: []};
         });
     }
 

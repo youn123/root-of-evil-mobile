@@ -16,13 +16,12 @@ import { connect } from 'react-redux';
 
 import { PRIMARY, SECONDARY } from '../settings';
 
-import { sleep, appendAndIncrement } from '../utils';
-import PrivateChatManager from '../root-of-evil/private-chat';
+import { sleep, nextId } from '../utils';
 import { TextBubble, RetroLoadingIndicator, Handles } from '../components';
 
-import Lobby from '../lobby';
 import { ShowWhen } from '../hoc';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const fakeEvilMembers = ['qin', 'youn', 'steve'];
 
@@ -162,7 +161,7 @@ class PrivateChat extends React.Component {
     this.setState({screenState: 'Loading'});
 
     let connectReqs = [];
-    let chatRoomId = PrivateChatManager.newChatRoomId(this.props.handle);
+    let chatRoomId = `__${this.props.handle}-pc-${nextId()}`;
 
     this.props.setPrivateChatLifeCycleState({type: 'Requested', chatRoomId, hasTerminatePrivilege: true});
 
@@ -244,7 +243,8 @@ class PrivateChat extends React.Component {
       from: this.props.handle,
       to: this.props.privateChatId,
       text: this.state.text,
-      id: appendAndIncrement(this.props.handle)
+      id: `${this.props.handle}-${nextId()}`,
+      timestamp: Date.now()
     })
       .then(() => {
         this.setState({text: ''});
