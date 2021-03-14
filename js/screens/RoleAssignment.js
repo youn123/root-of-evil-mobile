@@ -18,8 +18,8 @@ import store from '../store';
 import { sleep, generateRandomBase64String } from '../utils';
 import { Handles } from '../components';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const PRIMARY = '#0D0628';
 
@@ -56,7 +56,7 @@ class RoleAssignment extends React.Component {
       sleep(2000)
         .then(() => {
           let { newGameState } = RootOfEvil.startWithConfig(getGameStateFromStore(store.getState()), {
-            numEvilMembers: 1
+            numEvilMembers: 2
           });
     
           this.props.setGameState(newGameState);
@@ -71,7 +71,7 @@ class RoleAssignment extends React.Component {
             type: 'MESSAGE',
             from: '__announcement_high',
             to: '__everyone',
-            text: `Team lead for mission ${this.props.currentMission} is ${this.props.players[this.props.teamLead]}. Choose ${this.props.missions[this.props.currentMission].numPeople} people to go on the mission.`
+            text: `Team lead for mission ${this.props.currentMission} is ${this.props.teamLead}. Choose ${this.props.missions[this.props.currentMission].numPeople} people to go on the mission.`
           })
         });
     }
@@ -164,7 +164,7 @@ function mapStateToProps(state) {
     role: state.role,
     handle: state.handle,
     currentMission: state.currentMission,
-    teamLead: state.teamLead,
+    teamLead: state.players[state.teamLead],
     players: state.players,
     missions: state.missions
   };

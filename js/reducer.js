@@ -1,5 +1,3 @@
-import { ActionSheetIOS } from "react-native";
-
 const INITIAL_STATE = {
   appState: 'Menu', // enum('Menu', 'Lobby', 'RoleAssignment', 'InGame'),
   lobbyCode: '',
@@ -12,7 +10,10 @@ const INITIAL_STATE = {
   privateChatLifeCycleState: {type: 'None'},
   privateMessages: [],
   abilityInCooldown: false,
-  numHacksRemaining: 7
+  numHacksRemaining: 7,
+  proposedTeam: null,
+  votes: {},
+  state: null // enum('Created', 'TeamBuilding', 'Vote', 'StatusReport')
 };
 
 export default function reducer(state = INITIAL_STATE, action) {

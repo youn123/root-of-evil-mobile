@@ -18,10 +18,11 @@ import { PRIMARY, SECONDARY } from '../settings';
 
 import { sleep, nextId } from '../utils';
 import { TextBubble, RetroLoadingIndicator, Handles } from '../components';
+import { PrivateChatStore } from '../root-of-evil';
 
 import { ShowWhen } from '../hoc';
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const fakeEvilMembers = ['qin', 'youn', 'steve'];
 
@@ -238,20 +239,24 @@ class PrivateChat extends React.Component {
   }
 
   handleSendMessage = () => {
-    Lobby.getCurrentLobby().send({
+    let message = {
       type: 'MESSAGE',
       from: this.props.handle,
       to: this.props.privateChatId,
       text: this.state.text,
       id: `${this.props.handle}-${nextId()}`,
       timestamp: Date.now()
-    })
+    };
+
+    Lobby.getCurrentLobby().send(message)
       .then(() => {
         this.setState({text: ''});
       });
   }
 
   handleTerminate = () => {
+    PrivateChatStore.scheduleTermination(this.props.privateChatId);
+
     Lobby.getCurrentLobby().send({
       type: 'TERMINATE_PRIVATE_CHAT',
       from: this.props.handle,
@@ -302,7 +307,7 @@ class PrivateChat extends React.Component {
               marginTop: 20,
               paddingHorizontal: 20
             }}>
-              {this.props.players.map(member => {
+              {this.props.evilMembers.filter(member => member != this.props.handle).map(member => {
                 return (
                   <TouchableOpacity
                     onPress={() => {
@@ -477,6 +482,12 @@ class PrivateChat extends React.Component {
                 this.flatListRef.scrollToEnd();
               }
             }}
+            onEndReachedThreshold={0.05}
+            onEndReached={() => {
+              this.setState({
+                endReached: true
+              });
+            }}
           />
         </View>
         <View style={styles.inputContainer}>
@@ -485,7 +496,7 @@ class PrivateChat extends React.Component {
             onChangeText={text => {
               this.setState({text});
             }}
-            placeholder='Remember this chat is not secure.'
+            placeholder='An FBI agent could be snooping.'
             placeholderTextColor='#485696'
             multiline
             maxLength={140}

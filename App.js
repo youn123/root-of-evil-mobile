@@ -21,7 +21,10 @@ import {
   Lobby,
   RoleAssignment,
   PrivateChat,
-  Hack
+  Hack,
+  ProposeTeam,
+  Vote,
+  StatusReport
 } from './js/screens';
 
 import { PRIMARY } from './js/settings';
@@ -56,6 +59,9 @@ class App extends React.Component {
             <Stack.Screen name='MainChat' component={MainChat} />
             <Stack.Screen name='PrivateChat' component={PrivateChat} />
             <Stack.Screen name='Hack' component={Hack} />
+            <Stack.Screen name='ProposeTeam' component={ProposeTeam} />
+            <Stack.Screen name='Vote' component={Vote} />
+            <Stack.Screen name='StatusReport' component={StatusReport} />
           </>
         );
         break;
@@ -76,7 +82,8 @@ class App extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    appState: state.appState
+    appState: state.appState,
+    gameState: state.state
   };
 }
 

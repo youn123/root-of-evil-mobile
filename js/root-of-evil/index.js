@@ -1,9 +1,5 @@
-const RESERVED_HANDLES = [
-  '__everyone',
-  '__host',
-  '__announcement_low',
-  '__announcement_high'
-];
+const PrivateChatStore = require('./private-chat-store');
+const { choose, chooseNoReplacement } = require('../utils');
 
 const Roles = {
   RootOfEvil: 'RootOfEvil',
@@ -23,7 +19,11 @@ function createNew() {
       {numPeople: 3}
     ],
     currentMission: 0,
-    teamLead: null
+    teamLead: null,
+    votes: null,
+    proposedTeam: null,
+    votesToKill: null,
+    killContracts: []
   };
 }
   
@@ -31,6 +31,8 @@ function apply(gameState, action) {
   switch (action.type) {
     case 'JOIN':
       return join(gameState, action);
+    case 'VOTE':
+      return vote(gameState, action);
   }
 }
   
@@ -45,12 +47,12 @@ function join(gameState, joinData) {
     };
   }
   
-  if (RESERVED_HANDLES.includes(joinData.handle)) {
+  if (joinData.handle.indexOf('__') == 0) {
     return {
       newGameState: gameState,
       response: {
         result: 'Rejected',
-        message: `'${joinData.handle}' is a reserved keyword.`
+        message: `'${joinData.handle}' is a reserved handle.`
       }
     };
   }
@@ -63,6 +65,86 @@ function join(gameState, joinData) {
       result: 'Accepted'
     }
   };
+}
+
+function vote(gameState, action) {
+  let votesCopy = {...gameState.votes};
+  votesCopy[action.from] = action.accepted;
+
+  let newGameState = {
+    ...gameState,
+    votes: votesCopy
+  };
+
+  let statusReport = generateStatusReport(newGameState);
+
+  if (statusReport) {
+    newGameState.statusReport = statusReport;
+    newGameState.state = 'StatusReport';
+  }
+
+  return {
+    newGameState
+  };
+}
+
+function voteToKill(gameState, action) {
+  let votesToKillCopy = {...gameState.voteToKill};
+  votesToKillCopy[action.from] = action.victim;
+
+  let newGameState = {
+    ...gameState,
+    votesToKill
+  };
+
+  let statusReport = generateStatusReport(newGameState);
+
+  if (statusReport) {
+    newGameState.statusReport = statusReport;
+    newGameState.state = 'StatusReport';
+  }
+
+  return {
+    newGameState
+  };
+}
+
+function generateStatusReport(gameState) {
+  let numVotedYes = 0;
+  let numVotedNo = 0;
+
+  for (let member of Object.keys(votesCopy)) {
+    if (votesCopy[member]) {
+      numVotedYes++;
+    } else if (votesCopy[member] !== null && !votesCopy[member]) {
+      numVotedNo++;
+    }
+  }
+
+  let numVotesToKill = 0;
+  let votesToKill = {};
+  let victim = null;
+
+  for (let evilMember of Object.keys(gameState.votesToKill)) {
+    numVotesToKill++;
+    if (gameState.votesToKill[evilMember]) {
+      victim = gameState.votesToKill[evilMember];
+      votesToKill[victim]++;
+    }
+  }
+
+  if ((numVotedYes + numVotedNo) == gameState.players.length && numVotesToKill == gameState.evilMembers.length) {
+    let victimKilled = votesToKill[victim] == gameState.evilMembers.length;
+    let contractKilled = victimKilled && gameState.killContracts.includes(victim);
+
+    return {
+      mission: bountyKilled ? false : numVotedYes >= gameState.players.length / 2.0 ? true : false,
+      killed: victimKilled ? victim : null,
+      privateChatLeaked: victim && !contractKilled
+    };
+  } else {
+    return null;
+  }
 }
   
 function start(gameState) {
@@ -119,31 +201,12 @@ function startWithConfig(gameState, config) {
     }
   };
 }
-  
-function chooseNoReplacement(arr, numToChoose) {
-  let arrCopy = [...arr];
-  let chosen = [];
 
-  for (let i = 0; i < numToChoose; i++) {
-    let randIndex = Math.floor(Math.random() * arrCopy.length);
-    chosen.push(arrCopy[randIndex]);
-    arrCopy.splice(randIndex, 1);
-  }
-
-  return {
-    finalArr: arrCopy,
-    chosen
-  };
-}
-
-function choose(arr) {
-  return Math.floor(Math.random() * arr.length);
-}
-
-export default {
+module.exports = {
   createNew,
   apply,
   start,
   startWithConfig,
-  Roles
+  Roles,
+  PrivateChatStore
 };

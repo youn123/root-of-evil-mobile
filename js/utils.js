@@ -13,10 +13,54 @@ export function generateRandomBase64String(length) {
   return str.substring(0, length);
 }
 
-export function appendAndIncrement(str) {
-  return `${str}-${num++}`;
-}
-
 export function nextId() {
   return num++;
+}
+
+export function chooseNoReplacement(arr, numToChoose) {
+  let arrCopy = [...arr];
+  let chosen = [];
+
+  for (let i = 0; i < numToChoose; i++) {
+    let randIndex = Math.floor(Math.random() * arrCopy.length);
+    chosen.push(arrCopy[randIndex]);
+    arrCopy.splice(randIndex, 1);
+  }
+
+  return {
+    finalArr: arrCopy,
+    chosen
+  };
+}
+
+export function choose(arr) {
+  return Math.floor(Math.random() * arr.length);
+}
+
+export function obfuscateMessage(message, obfuscateHandle) {
+  let obfuscatedMessage = {...message};
+  if (obfuscateHandle) {
+    obfuscatedMessage.from = '***';
+  }
+
+  let now = Date.now();
+  let ageInSeconds = (now - message.timestamp) / 1000;
+
+  let charArray = [...message.text];
+  let mask = Math.floor(Math.random() * 50);
+
+  decayRate = ageInSeconds * 0.005;
+
+  if (decayRate > 0.5) {
+    return obfuscatedMessage;
+  }
+
+  for (let i in charArray) {
+    if (Math.random() < decayRate) {
+      charArray[i] = String.fromCharCode(charArray[i].charCodeAt(0) ^ mask);
+    }
+  }
+  
+  obfuscatedMessage.text = charArray.join('');
+  return obfuscatedMessage;
 }

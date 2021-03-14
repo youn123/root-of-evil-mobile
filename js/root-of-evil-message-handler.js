@@ -1,7 +1,8 @@
 import RootOfEvil from './root-of-evil';
+import { PrivateChatStore } from './root-of-evil';
 import { getGameStateFromStore } from './reducer';
 import { removeMetadata } from './lobby'; 
-import PrivateChat from './screens/PrivateChat';
+import { obfuscateMessage } from './utils';
 
 export function hostHandleRootOfEvilMessage(messages, lobby, store) {
   console.log(`Host received ${messages.length} messages.`);
@@ -59,10 +60,21 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
             message
           });
         } else if (to === store.getState().privateChatId) {
-          store.dispatch({
-            type: 'ADD_PRIVATE_MESSAGE',
-            message
-          });
+          if (store.getState().role == RootOfEvil.Roles.FBI) {
+            store.dispatch({
+              type: 'ADD_PRIVATE_MESSAGE',
+              message: obfuscateMessage(message, from != store.getState().privateChatLifeCycleState.personOfInterest)
+            });
+          } else {
+            store.dispatch({
+              type: 'ADD_PRIVATE_MESSAGE',
+              message
+            });
+
+            if (from.indexOf('__') != 0) {
+              PrivateChatStore.add(message);
+            }
+          }
         }
         break;
       case 'START_GAME':
@@ -72,7 +84,7 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
         });
         break;
       case 'TERMINATE_PRIVATE_CHAT':
-        if (to === store.getState().privateChatId) {
+        if (store.getState().role == RootOfEvil.Roles.RootOfEvil && to === store.getState().privateChatId) {
           store.dispatch({
             type: 'CLEAR_PRIVATE_CHAT'
           });
@@ -135,6 +147,12 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
         }
         break;
       case 'HACK':
+        if (to != store.getState().handle) {
+          break;
+        }
+
+        console.log(`${store.getState().handle} Received HACK from ${from}`);
+
         if (store.getState().role != RootOfEvil.Roles.RootOfEvil) {
           lobby.respondTo(message, {
             result: 'Rejected',
@@ -142,15 +160,12 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
           });
         }
 
-        if (to != store.getState().handle) {
-          break;
-        }
+        let messages = PrivateChatStore.get();
 
-        let { chatRoomId, messages } = PrivateChatStore.get();
-        if (chatRoomId) {
+        if (messages) {
           lobby.respondTo(message, {
             result: 'Accepted',
-            chatRoomId,
+            chatRoomId: messages[0].to,
             messages,
             from: store.getState().handle
           });
@@ -161,6 +176,36 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
           });
         }
         break;
+      case 'PROPOSE_TEAM':
+        let votes = {};
+        store.getState().players.forEach(player => {
+          votes[player] = null;
+        });
+        votes[from] = true;
+
+        store.dispatch({
+          type: 'SET_GAME_STATE',
+          gameState: {
+            state: 'Vote',
+            proposedTeam: message.proposedTeam,
+            votes
+          },
+        });
+        break;
+      // case 'VOTE':
+      //   let { newGameState, response } = RootOfEvil.apply(getGameStateFromStore(store.getState(), removeMetadata(message)));
+
+      //   store.dispatch({
+      //     gameState: newGameState
+      //   });
+      //   break;
+      // case 'KILL':
+      //   let { newGameState, response } = RootOfEvil.apply(getGameStateFromStore(store.getState(), removeMetadata(message)));
+
+      //   store.dispatch({
+      //     gameState: newGameState
+      //   });
+      //   break;
     }
   }
 }

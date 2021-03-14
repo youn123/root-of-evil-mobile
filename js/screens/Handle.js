@@ -17,8 +17,8 @@ import { getGameStateFromStore } from '../reducer';
 import store from '../store';
 import RootOfEvil from '../root-of-evil';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 import { clientHandleRootOfEvilMessage } from '../root-of-evil-message-handler';
 
 const PRIMARY = '#0D0628';

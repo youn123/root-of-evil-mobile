@@ -24,8 +24,8 @@ import { nextId } from '../utils';
 import TextBubble from '../components/TextBubble';
 import { ShowWhen } from '../hoc';
 import RootOfEvil from '../root-of-evil';
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -198,8 +198,6 @@ class MainChat extends React.Component {
     Keyboard.addListener('keyboardDidShow', this.handleKeyboardDidShow);
     Keyboard.addListener('keyboardDidHide', this.handleKeyboardDidHide);
 
-    // BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
-
     this.props.navigation.addListener('focus', () => {
       console.log('MainChat focused');
     });
@@ -208,7 +206,6 @@ class MainChat extends React.Component {
   componentWillUnmount() {
     Keyboard.removeListener('keyboardDidShow', this.handleKeyboardDidShow);
     Keyboard.removeListener('keyboardDidHide', this.handleKeyboardDidHide);
-    // BackHandler.removeEventListener('hardwareBackPress', this.handleBackButton);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -216,12 +213,18 @@ class MainChat extends React.Component {
       this.flatListRef.scrollToEnd();
     }
 
-    if (this.props.privateChatLifeCycleState.type == 'None' && prevProps.privateChatLifeCycleState.type == 'Connected') {
-      this.timeGatedButton.startCountdown();
+    if (this.props.role == RootOfEvil.Roles.RootOfEvil) {
+      if (this.props.privateChatLifeCycleState.type == 'None' && prevProps.privateChatLifeCycleState.type == 'Connected') {
+        this.timeGatedButton.startCountdown();
+      }
+  
+      if (this.props.privateChatLifeCycleState.type == 'Requested' && prevProps.privateChatLifeCycleState != this.props.privateChatLifeCycleState) {
+        this.props.navigation.navigate('PrivateChat');
+      }
     }
-
-    if (this.props.privateChatLifeCycleState.type == 'Requested' && prevProps.privateChatLifeCycleState != this.props.privateChatLifeCycleState) {
-      this.props.navigation.navigate('PrivateChat');
+    
+    if (this.props.gameState == 'Vote' && prevProps.gameState != this.props.gameState) {
+      this.props.navigation.navigate('Vote');
     }
   }
 
@@ -282,8 +285,14 @@ class MainChat extends React.Component {
               <View style={{
                 flexDirection: 'row'
               }}>
-                <Text style={{marginRight: 7}}>Propose team</Text>
-                <ShowWhen condition={this.props.role == RootOfEvil.Roles.FBI}>
+                <ShowWhen condition={this.props.teamLead == this.props.handle}>
+                  <TouchableOpacity onPress={() => {
+                    this.props.navigation.navigate('ProposeTeam');
+                  }}>
+                    <Text style={{marginRight: 7}}>Propose team</Text>
+                  </TouchableOpacity>
+                </ShowWhen>
+                <ShowWhen condition={this.props.role == RootOfEvil.Roles.RootOfEvil}>
                   <TimeGatedButton
                     text='Private chat'
                     time={60000}
@@ -299,29 +308,29 @@ class MainChat extends React.Component {
                     }}
                   />
                 </ShowWhen>
-                <ShowWhen condition={this.props.role == RootOfEvil.Roles.RootOfEvil}>
-                  <View style={{
-                    flexDirection: 'row',
+                <ShowWhen
+                  condition={this.props.role == RootOfEvil.Roles.FBI}
+                  style={{
                     alignItems: 'center'
+                  }}
+                >
+                  <TouchableOpacity
+                    disabled={this.props.numHacksRemaining == 0}
+                    onPress={() => {
+                      // if (this.props.privateChatLifeCycleState.type == 'None') {
+                      //   this.props.setNumHacksRemaining(this.props.numHacksRemaining - 1);
+                      // }
+                      this.props.navigation.navigate('Hack');
+                    }}
+                  >
+                    <Text style={{marginRight: 3, color: this.props.numHacksRemaining == 0 ? 'grey' : 'white'}}>Hack</Text>
+                  </TouchableOpacity>
+                  <View style={{
+                    backgroundColor: 'grey',
+                    paddingHorizontal: 2,
+                    borderRadius: 2
                   }}>
-                    <TouchableOpacity
-                      disabled={this.props.numHacksRemaining == 0}
-                      onPress={() => {
-                        if (this.props.privateChatLifeCycleState.type == 'None') {
-                          this.props.setNumHacksRemaining(this.props.numHacksRemaining - 1);
-                        }
-                        this.props.navigation.navigate('Hack');
-                      }}
-                    >
-                      <Text style={{marginRight: 3, color: this.props.numHacksRemaining == 0 ? 'grey' : 'white'}}>Hack</Text>
-                    </TouchableOpacity>
-                    <View style={{
-                      backgroundColor: 'grey',
-                      paddingHorizontal: 2,
-                      borderRadius: 2
-                    }}>
-                      <Text>{this.props.numHacksRemaining}</Text>
-                    </View>
+                    <Text>{this.props.numHacksRemaining}</Text>
                   </View>
                 </ShowWhen>
               </View>
@@ -415,7 +424,9 @@ function mapStateToProps(state) {
     abilityInCooldown: state.abilityInCooldown,
     privateChatLifeCycleState: state.privateChatLifeCycleState,
     role: state.role,
-    numHacksRemaining: state.numHacksRemaining
+    numHacksRemaining: state.numHacksRemaining,
+    teamLead: state.players[state.teamLead],
+    gameState: state.state
   };
 }
 

@@ -16,33 +16,11 @@ import { connect } from 'react-redux';
 import { PRIMARY, SECONDARY } from '../settings';
 
 import { TextBubble, RetroLoadingIndicator } from '../components';
+import store from '../store';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
-
-function obfuscate(message, obfuscateHandle) {
-  let obfuscatedMessage = {...message};
-  if (obfuscateHandle) {
-    obfuscatedMessage.to = '***';
-  }
-
-  let now = Date.now();
-  let ageInSeconds = (now - message.timestamp) / 1000;
-
-  let charArray = [...message.text];
-  let mask = Math.floor(Math.random() * 50);
-
-  decayRate = ageInSeconds * 0.5;
-
-  for (let i in charArray) {
-    if (Math.random() < decayRate) {
-      charArray[i] = String.fromCharCode(charArray[i].charCodeAt(0) ^ mask);
-    }
-  }
-  
-  obfuscatedMessage.message = charArray.join('');
-  return obfuscatedMessage;
-}
+import Lobby from '../lobby';
+import { sleep, obfuscateMessage } from '../utils';
+// import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -98,7 +76,7 @@ const styles = StyleSheet.create({
 
 class Hack extends React.Component {
   state = {
-    screenState: 'Select', // enum('Select', 'Loading', 'Connected', Terminated', Left')
+    screenState: 'Select', // enum('Select', 'Loading', 'Connected', 'Disconnected', 'Failed')
     selected: '',
     scrollOffset: 0,
     endReached: true
@@ -120,25 +98,10 @@ class Hack extends React.Component {
     Keyboard.removeListener('keyboardDidShow', this.handleKeyboardDidShow);
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.props.privateChatLifeCycleState.type === 'None' && prevProps.privateChatLifeCycleState.type == 'Connected') {
-      this.setState({screenState: 'Terminated'});
-    }
-    
+  componentDidUpdate(prevProps, prevState) {    
     if (this.state.endReached && prevProps.messages != this.props.messages) {
       this.flatListRef && this.flatListRef.scrollToEnd();
     }
-  }
-
-  handleKeyboardDidShow = event => {
-    const { height: widnowHeight } = Dimensions.get('window');
-
-    console.log(`screen height: ${widnowHeight}`);
-    console.log(`keyboard height: ${event.endCoordinates.height}`);
-
-    this.flatListRef.scrollToOffset({
-      offset: this.state.scrollOffset + event.endCoordinates.height
-    });
   }
 
   handleSelect = member => {
@@ -147,23 +110,51 @@ class Hack extends React.Component {
 
   handleHack = async () => {
     this.setState({screenState: 'Loading'});
+    this.props.setNumHacksRemaining(this.props.numHacksRemaining - 1);
 
     Lobby.getCurrentLobby().send({
       type: 'HACK',
       from: this.props.handle,
       to: this.state.selected
     }, true)
+      .then(async res => {
+        await sleep(1000);
+        return res;
+      })
       .then(res => {
         if (res.result == 'Accepted') {
+          let slowlyObfuscate = setInterval(() => {
+            console.log('slowlyObfuscate');
+
+            // console.log(store.getState().privateMessages);
+
+            let newMessages = store.getState().privateMessages.map(message => obfuscateMessage(message, message.from != store.getState().privateChatLifeCycleState.personOfInterest));
+            console.log(newMessages);
+            store.dispatch({
+              type: 'SET_PRIVATE_MESSAGES',
+              messages: newMessages
+            });
+          }, 30000);
+
           this.props.setPrivateChatId(res.chatRoomId);
-          this.props.setPrivateChatLifeCycleState({type: 'Connected', personOfInterest: this.state.selected});
-          this.props.setPrivateMessages(res.messages.map(message => obfuscate(message, message.to != this.state.selected)));
+          this.props.setPrivateChatLifeCycleState({
+            type: 'Connected',
+            personOfInterest: this.state.selected,
+            slowlyObfuscate
+          });
+          this.props.setPrivateMessages(res.messages.map(message => obfuscateMessage(message, message.from != this.state.selected)));
 
           this.setState({screenState: 'Connected'});
         } else {
           this.setState({screenState: 'Failed'});
         }
       });
+  }
+
+  handleDisconnect = () => {
+    this.setState({screenState: 'Disconnected'});
+    clearInterval(this.props.privateChatLifeCycleState.slowlyObfuscate);
+    this.props.clearPrivateChat();
   }
 
   setStateAsync = newState => {
@@ -198,14 +189,14 @@ class Hack extends React.Component {
           }}>
             <Text style={{
               marginBottom: 5
-            }}>Suspicious? Select who you want to hack.</Text>
+            }}>Suspicious of Evil activity? Select who you want to hack.</Text>
           </View>
           <View>
             <ScrollView contentContainerStyle={{
               marginTop: 20,
               paddingHorizontal: 20
             }}>
-              {this.props.players.map(member => {
+              {this.props.players.filter(member => member != this.props.handle).map(member => {
                 return (
                   <TouchableOpacity
                     onPress={() => {
@@ -240,7 +231,7 @@ class Hack extends React.Component {
           </View>
         </>
       );
-    } else if (this.state.screenState == 'Terminated') {
+    } else if (this.state.screenState == 'Disconnected') {
       content = (
         <>
           <View style={{
@@ -248,7 +239,7 @@ class Hack extends React.Component {
             marginTop: 20,
             flex: 1
           }}>
-            <Text>Chat has been terminated.</Text>
+            <Text>You have disconnected from the chat.</Text>
           </View>
         </>
       );
@@ -292,22 +283,15 @@ class Hack extends React.Component {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.chatHeader}>
-          <TouchableOpacity
-            onPress={() => {
-              this.props.navigation.goBack();
-            }}
-          >
+          <TouchableOpacity onPress={this.props.navigation.goBack}>
             <Icon
               name='chevron-back-outline'
               size={30}
               color='#485696'
             /> 
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => {
-            this.setState({screenState: 'Terminated'});
-            this.props.clearPrivateChat();
-          }}>
-            <Text style={{color: 'red'}}>Leave</Text>
+          <TouchableOpacity onPress={this.handleDisconnect}>
+            <Text style={{color: 'red'}}>Disconnect</Text>
           </TouchableOpacity>
         </View>
         <View style={{flex: 1}}>
@@ -326,6 +310,12 @@ class Hack extends React.Component {
                 this.flatListRef.scrollToEnd();
               }
             }}
+            onEndReachedThreshold={0.05}
+            onEndReached={() => {
+              this.setState({
+                endReached: true
+              });
+            }}
           />
         </View>
         <View style={styles.bottomBar}>
@@ -335,7 +325,7 @@ class Hack extends React.Component {
             color='#485696'
             style={{marginRight: 5}}
           /> 
-          <Text style={{color: '#485696', marginLeft: 5, fontSize: 16}}>Read Only</Text>
+          <Text style={{color: '#485696', marginLeft: 5, fontSize: 16}}>READ ONLY</Text>
         </View>
       </SafeAreaView>
     );
@@ -348,7 +338,8 @@ function mapStateToProps(state) {
     messages: state.privateMessages,
     handle: state.handle,
     privateChatId: state.privateChatId,
-    privateChatLifeCycleState: state.privateChatLifeCycleState
+    privateChatLifeCycleState: state.privateChatLifeCycleState,
+    numHacksRemaining: state.numHacksRemaining
   };
 }
 
@@ -357,7 +348,8 @@ function mapDispatchToProps(dispatch) {
     setPrivateChatId: privateChatId => dispatch({type: 'SET_PRIVATE_CHAT_ID', privateChatId}),
     setPrivateChatLifeCycleState: privateChatLifeCycleState => dispatch({type: 'SET_PRIVATE_CHAT_LIFE_CYCLE_STATE', privateChatLifeCycleState}),
     clearPrivateChat: () => dispatch({type: 'CLEAR_PRIVATE_CHAT'}),
-    setPrivateMessages: messages => dispatch({type: 'SET_PRIVATE_MESSAGES', messages})
+    setPrivateMessages: messages => dispatch({type: 'SET_PRIVATE_MESSAGES', messages}),
+    setNumHacksRemaining: numHacks => dispatch({type: 'SET_NUM_HACKS_REMAINING', numHacks})
   };
 }
 
