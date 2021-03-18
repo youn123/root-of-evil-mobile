@@ -111,25 +111,25 @@ class StatusReport extends React.Component {
             height: '80%'
           }}>
             <ScrollView>
-              {Object.keys(fakeVotes).map(member => {
+              {Object.keys(this.props.votes).map(member => {
                 return (
                   <View style={styles.member}>
                     <Text>{member}</Text>
-                    <ShowWhen condition={fakeVotes[member] === null}>
+                    <ShowWhen condition={this.props.votes[member] === null}>
                       <Icon
                         name='hourglass-outline'
                         size={20}
                         color='#485696'
                       />
                     </ShowWhen>
-                    <ShowWhen condition={fakeVotes[member]}>
+                    <ShowWhen condition={this.props.votes[member]}>
                       <Icon
                         name='checkmark-circle-outline'
                         size={20}
                         color='#8ac926'
                       />
                     </ShowWhen>
-                    <ShowWhen condition={fakeVotes[member] !== null && !fakeVotes[member]}>
+                    <ShowWhen condition={this.props.votes[member] !== null && !this.props.votes[member]}>
                       <Icon
                         name='close-circle-outline'
                         size={20}

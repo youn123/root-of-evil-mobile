@@ -10,6 +10,7 @@ import Hack from './Hack';
 import ProposeTeam from './ProposeTeam';
 import Vote from './Vote';
 import StatusReport from './StatusReport';
+import Kill from './Kill';
 
 module.exports = {
   Home,
@@ -23,5 +24,6 @@ module.exports = {
   Hack,
   ProposeTeam,
   Vote,
-  StatusReport
+  StatusReport,
+  Kill
 };

@@ -24,7 +24,8 @@ import {
   Hack,
   ProposeTeam,
   Vote,
-  StatusReport
+  StatusReport,
+  Kill
 } from './js/screens';
 
 import { PRIMARY } from './js/settings';
@@ -62,6 +63,7 @@ class App extends React.Component {
             <Stack.Screen name='ProposeTeam' component={ProposeTeam} />
             <Stack.Screen name='Vote' component={Vote} />
             <Stack.Screen name='StatusReport' component={StatusReport} />
+            <Stack.Screen name='Kill' component={Kill} />
           </>
         );
         break;

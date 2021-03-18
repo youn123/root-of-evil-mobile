@@ -43,6 +43,7 @@ export function hostHandleRootOfEvilMessage(messages, lobby, store) {
 export function clientHandleRootOfEvilMessage(messages, lobby, store) {
   for (let message of messages) {
     let { type, to, from, ...gameState } = removeMetadata(message);
+    let newGameState;
 
     switch (type) {
       case 'NEW_GAME_STATE':
@@ -192,20 +193,20 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
           },
         });
         break;
-      // case 'VOTE':
-      //   let { newGameState, response } = RootOfEvil.apply(getGameStateFromStore(store.getState(), removeMetadata(message)));
+      case 'VOTE':
+        newGameState = RootOfEvil.apply(getGameStateFromStore(store.getState(), removeMetadata(message)));
 
-      //   store.dispatch({
-      //     gameState: newGameState
-      //   });
-      //   break;
-      // case 'KILL':
-      //   let { newGameState, response } = RootOfEvil.apply(getGameStateFromStore(store.getState(), removeMetadata(message)));
+        store.dispatch({
+          gameState: newGameState.newGameState
+        });
+        break;
+      case 'KILL':
+        newGameState = RootOfEvil.apply(getGameStateFromStore(store.getState(), removeMetadata(message)));
 
-      //   store.dispatch({
-      //     gameState: newGameState
-      //   });
-      //   break;
+        store.dispatch({
+          gameState: newGameState.newGameState
+        });
+        break;
     }
   }
 }

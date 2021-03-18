@@ -56,7 +56,7 @@ class RoleAssignment extends React.Component {
       sleep(2000)
         .then(() => {
           let { newGameState } = RootOfEvil.startWithConfig(getGameStateFromStore(store.getState()), {
-            numEvilMembers: 2
+            numEvilMembers: 1
           });
     
           this.props.setGameState(newGameState);

@@ -4,11 +4,7 @@ import {
   StyleSheet,
   View,
   Text,
-  TextInput,
   TouchableOpacity,
-  FlatList,
-  Keyboard,
-  Dimensions,
   ScrollView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -50,34 +46,27 @@ const styles = StyleSheet.create({
   }
 });
 
-class ProposeTeam extends React.Component {
+class Kill extends React.Component {
   state = {
-    selected: {}
+    selected: null
   }
 
   handleSelect = member => {
-    let selectedCopy = {...this.state.selected};
-
-    if (selectedCopy.hasOwnProperty(member)) {
-      delete selectedCopy[member];
+    if (this.state.selected == member) {
+      this.setState({selected: null});
     } else {
-      if (Object.keys(this.state.selected) == this.props.currentMission.numPeople) {
-        return;
-      }
-
-      selectedCopy[member] = true;
+      this.setState({selected: member});
     }
-
-    this.setState({selected: selectedCopy});
   }
 
   handleContinue = async () => {
     Lobby.getCurrentLobby().send({
-      type: 'PROPOSE_TEAM',
+      type: 'KILL',
       from: this.props.handle,
-      to: '__everyone',
-      proposedTeam: Object.keys(this.state.selected)
+      selected: this.state.selected
     });
+
+    this.props.navigation.navigate('StatusReport');
   }
 
   setStateAsync = newState => {
@@ -90,19 +79,6 @@ class ProposeTeam extends React.Component {
     return (
       <SafeAreaView style={styles.container}>
         <View style={[styles.header, {backgroundColor: PRIMARY}]}>
-          <View>
-            <TouchableOpacity
-              onPress={() => {
-                this.props.navigation.goBack();
-              }}
-            >
-              <Icon
-                name='chevron-back-outline'
-                size={40}
-                color='#485696'
-              /> 
-            </TouchableOpacity>
-          </View>
         </View>
         <View style={{
             marginTop: 20,
@@ -110,7 +86,7 @@ class ProposeTeam extends React.Component {
           }}>
           <Text style={{
             marginBottom: 5
-          }}>Choose {this.props.currentMission.numPeople} members to go on the mission.</Text>
+          }}>Choose a member to kill.</Text>
         </View>
         <View>
           <ScrollView contentContainerStyle={{
@@ -124,7 +100,7 @@ class ProposeTeam extends React.Component {
                     this.handleSelect(member);
                   }}
                 >
-                  <View style={[styles.selectionOption, {backgroundColor: this.state.selected.hasOwnProperty(member) ? '#485696' : SECONDARY}]}>
+                  <View style={[styles.selectionOption, {backgroundColor: this.state.selected ? '#485696' : SECONDARY}]}>
                     <Text>{member}</Text>
                   </View>
                 </TouchableOpacity>
@@ -136,7 +112,7 @@ class ProposeTeam extends React.Component {
           style={{alignSelf: 'center', marginTop: 20}}
           onPress={this.handleConnect}
         >
-          <Text style={styles.borderButton}>Connect</Text>
+          <Text style={styles.borderButton}>Continue</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -146,17 +122,12 @@ class ProposeTeam extends React.Component {
 function mapStateToProps(state) {
   return {
     players: state.players,
-    missions: state.missions,
-    currentMission: state.missions[state.currentMission]
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    setPrivateChatId: privateChatId => dispatch({type: 'SET_PRIVATE_CHAT_ID', privateChatId}),
-    setPrivateChatLifeCycleState: privateChatLifeCycleState => dispatch({type: 'SET_PRIVATE_CHAT_LIFE_CYCLE_STATE', privateChatLifeCycleState}),
-    clearPrivateChat: () => dispatch({type: 'CLEAR_PRIVATE_CHAT'})
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ProposeTeam);
+export default connect(mapStateToProps, mapDispatchToProps)(Kill);

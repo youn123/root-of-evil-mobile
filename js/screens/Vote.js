@@ -18,7 +18,8 @@ import { connect } from 'react-redux';
 import { PRIMARY, SECONDARY } from '../settings';
 
 import { sleep, nextId } from '../utils';
-import { TextBubble, RetroLoadingIndicator, Handles } from '../components';
+import { Handles } from '../components';
+import RootOfEvil from '../root-of-evil';
 
 import { ShowWhen } from '../hoc';
 import Lobby from '../lobby';

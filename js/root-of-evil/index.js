@@ -33,6 +33,8 @@ function apply(gameState, action) {
       return join(gameState, action);
     case 'VOTE':
       return vote(gameState, action);
+    case 'KILL':
+      return voteToKill(gameState, action);
   }
 }
   
