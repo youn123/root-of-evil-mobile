@@ -223,7 +223,7 @@ class MainChat extends React.Component {
       }
     }
     
-    if (this.props.gameState == 'Vote' && prevProps.gameState != this.props.gameState) {
+    if (this.props.gameState == 'Vote' && prevProps.gameState != this.props.gameState && this.props.handle != this.props.teamLead) {
       this.props.navigation.navigate('Vote');
     }
   }

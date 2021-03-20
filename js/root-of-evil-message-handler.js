@@ -194,17 +194,22 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
         });
         break;
       case 'VOTE':
-        newGameState = RootOfEvil.apply(getGameStateFromStore(store.getState(), removeMetadata(message)));
+        newGameState = RootOfEvil.apply(getGameStateFromStore(store.getState()), message);
+
+        console.log(`${store.getState().handle} received VOTE.`);
+        console.log(newGameState.newGameState);
 
         store.dispatch({
-          gameState: newGameState.newGameState
+          type: 'SET_GAME_STATE',
+          gameState: newGameState
         });
         break;
       case 'KILL':
-        newGameState = RootOfEvil.apply(getGameStateFromStore(store.getState(), removeMetadata(message)));
+        newGameState = RootOfEvil.apply(getGameStateFromStore(store.getState()), message);
 
         store.dispatch({
-          gameState: newGameState.newGameState
+          type: 'SET_GAME_STATE',
+          gameState: newGameState
         });
         break;
     }

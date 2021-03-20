@@ -137,7 +137,8 @@ function mapStateToProps(state) {
     handle: state.handle,
     teamLead: state.players[state.teamLead],
     votes: state.votes,
-    proposedTeam: state.proposedTeam
+    proposedTeam: state.proposedTeam,
+    role: state.role
   };
 }
 

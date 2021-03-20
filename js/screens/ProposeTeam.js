@@ -11,6 +11,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
 import { PRIMARY, SECONDARY } from '../settings';
+import RootOfEvil from '../root-of-evil';
 
 import Lobby from '../lobby';
 // import Lobby from '../mocks/lobby';
@@ -51,13 +52,6 @@ class ProposeTeam extends React.Component {
     selected: {}
   }
 
-  componentDidUpdate(prevProps) {
-    console.log(this.props.gameState);
-    if (this.props.gameState == 'Vote' && prevProps.gameState != this.props.gameState) {
-      this.props.navigation.navigate('StatusReport');
-    }
-  }
-
   handleSelect = member => {
     let selectedCopy = {...this.state.selected};
 
@@ -81,6 +75,12 @@ class ProposeTeam extends React.Component {
       to: '__everyone',
       proposedTeam: Object.keys(this.state.selected)
     });
+
+    if (this.props.role == RootOfEvil.Roles.RootOfEvil) {
+      this.props.navigation.navigate('Kill');
+    } else {
+      this.props.navigation.navigate('StatusReport');
+    }
   }
 
   setStateAsync = newState => {
@@ -152,7 +152,8 @@ function mapStateToProps(state) {
     missions: state.missions,
     currentMission: state.missions[state.currentMission],
     handle: state.handle,
-    gameState: state.state
+    gameState: state.state,
+    role: state.role
   };
 }
 

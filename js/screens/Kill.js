@@ -100,7 +100,7 @@ class Kill extends React.Component {
                     this.handleSelect(member);
                   }}
                 >
-                  <View style={[styles.selectionOption, {backgroundColor: this.state.selected ? '#485696' : SECONDARY}]}>
+                  <View style={[styles.selectionOption, {backgroundColor: this.state.selected == member ? '#485696' : SECONDARY}]}>
                     <Text>{member}</Text>
                   </View>
                 </TouchableOpacity>
@@ -110,7 +110,7 @@ class Kill extends React.Component {
         </View>
         <TouchableOpacity
           style={{alignSelf: 'center', marginTop: 20}}
-          onPress={this.handleConnect}
+          onPress={this.handleContinue}
         >
           <Text style={styles.borderButton}>Continue</Text>
         </TouchableOpacity>

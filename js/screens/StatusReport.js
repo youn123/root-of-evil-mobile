@@ -89,6 +89,12 @@ class StatusReport extends React.Component {
     BackHandler.removeEventListener('hardwareBackPress', this.handleBackButton);
   }
 
+  componentDidUpdate(prevProps) {
+    if (this.props.gameState == 'MissionComplete' && this.props.gameState != prevProps.gameState) {
+      this.setState({screenState: 'StatusReport'});
+    }
+  }
+
   handleBackButton = () => {
     return true;
   }
@@ -143,6 +149,17 @@ class StatusReport extends React.Component {
           </View>
         </>
       );
+    } else {
+      content = (
+        <>
+          <Text>Mission complete!</Text>
+          <View style={{
+            marginVertical: 20,
+            height: '80%'
+          }}>
+          </View>
+        </>
+      );
     }
 
     return (
@@ -161,7 +178,8 @@ class StatusReport extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    votes: state.votes
+    votes: state.votes,
+    gameState: state.state
   };
 }
 

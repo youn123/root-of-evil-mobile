@@ -20,9 +20,9 @@ function createNew() {
     ],
     currentMission: 0,
     teamLead: null,
-    votes: null,
+    votes: {},
     proposedTeam: null,
-    votesToKill: null,
+    killVotes: {},
     killContracts: []
   };
 }
@@ -71,7 +71,7 @@ function join(gameState, joinData) {
 
 function vote(gameState, action) {
   let votesCopy = {...gameState.votes};
-  votesCopy[action.from] = action.accepted;
+  votesCopy[action.from] = action.accept;
 
   let newGameState = {
     ...gameState,
@@ -82,67 +82,69 @@ function vote(gameState, action) {
 
   if (statusReport) {
     newGameState.statusReport = statusReport;
-    newGameState.state = 'StatusReport';
+    newGameState.state = 'MissionComplete';
   }
 
-  return {
-    newGameState
-  };
+  return newGameState;
 }
 
 function voteToKill(gameState, action) {
-  let votesToKillCopy = {...gameState.voteToKill};
-  votesToKillCopy[action.from] = action.victim;
+  let killVotesCopy = {...gameState.voteToKill};
+  killVotesCopy[action.from] = action.victim;
 
   let newGameState = {
     ...gameState,
-    votesToKill
+    killVotes: killVotesCopy
   };
 
   let statusReport = generateStatusReport(newGameState);
 
   if (statusReport) {
     newGameState.statusReport = statusReport;
-    newGameState.state = 'StatusReport';
+    newGameState.state = 'MissionComplete';
   }
 
-  return {
-    newGameState
-  };
+  return newGameState;
 }
 
 function generateStatusReport(gameState) {
   let numVotedYes = 0;
   let numVotedNo = 0;
 
-  for (let member of Object.keys(votesCopy)) {
-    if (votesCopy[member]) {
+  for (let member of Object.keys(gameState.votes)) {
+    if (gameState.votes[member]) {
       numVotedYes++;
-    } else if (votesCopy[member] !== null && !votesCopy[member]) {
+    } else if (gameState.votes[member] !== null && !gameState.votes[member]) {
       numVotedNo++;
     }
   }
 
-  let numVotesToKill = 0;
-  let votesToKill = {};
+  let numKillVotes = 0;
+  let victimsToVotes = {};
   let victim = null;
 
-  for (let evilMember of Object.keys(gameState.votesToKill)) {
-    numVotesToKill++;
-    if (gameState.votesToKill[evilMember]) {
-      victim = gameState.votesToKill[evilMember];
-      votesToKill[victim]++;
+  for (let evilMember of Object.keys(gameState.killVotes)) {
+    numKillVotes++;
+    victim = gameState.killVotes[evilMember];
+
+    if (victim) {
+      if (!victimsToVotes[victim]) {
+        victimsToVotes[victim] = 0;
+      } else {
+        victimsToVotes[victim]++;
+      }
     }
   }
 
-  if ((numVotedYes + numVotedNo) == gameState.players.length && numVotesToKill == gameState.evilMembers.length) {
-    let victimKilled = votesToKill[victim] == gameState.evilMembers.length;
-    let contractKilled = victimKilled && gameState.killContracts.includes(victim);
+  if ((numVotedYes + numVotedNo) == gameState.players.length && numKillVotes == gameState.evilMembers.length) {
+    console.log('Doh!');
+    let victimSuccessfullyKilled = victim && victimsToVotes[victim] == gameState.evilMembers.length;
+    let victimHadKillContract = victimSuccessfullyKilled && gameState.killContracts.includes(victim);
 
     return {
-      mission: bountyKilled ? false : numVotedYes >= gameState.players.length / 2.0 ? true : false,
-      killed: victimKilled ? victim : null,
-      privateChatLeaked: victim && !contractKilled
+      mission: victimHadKillContract ? false : numVotedYes >= gameState.players.length / 2.0 ? true : false,
+      killed: victimSuccessfullyKilled ? victim : null,
+      privateChatLeaked: victim && !victimHadKillContract
     };
   } else {
     return null;
