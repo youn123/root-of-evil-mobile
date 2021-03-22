@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
 
 class StatusReport extends React.Component {
   state = {
-    screenState: 'Waiting' // enum('Waiting', 'StatusReport')
+    screenState: 'WaitingForVotes' // enum('WaitingForVotes', 'MissionComplete', 'FBIWon', 'RootOfEvilWon')
   }
 
   componentDidMount() {
@@ -90,8 +90,14 @@ class StatusReport extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.gameState == 'MissionComplete' && this.props.gameState != prevProps.gameState) {
-      this.setState({screenState: 'StatusReport'});
+    if (this.props.gameState != prevProps.gameState) {
+      if (this.props.gameState == 'MissionComplete') {
+        this.setState({screenState: 'MissionComplete'});
+      } else if (this.props.gameState == 'FBIWon') {
+        this.setState({screenState: 'FBIWon'});
+      } else if (this.props.gameState == 'RootOfEvilWon') {
+        this.setState({screenState: 'RootOfEvilWon'});
+      }
     }
   }
 
@@ -108,7 +114,7 @@ class StatusReport extends React.Component {
   render() {
     let content = null;
 
-    if (this.state.screenState == 'Waiting') {
+    if (this.state.screenState == 'WaitingForVotes') {
       content = (
         <>
           <Text>Waiting for people to finish voting...</Text>
@@ -157,6 +163,11 @@ class StatusReport extends React.Component {
             marginVertical: 20,
             height: '80%'
           }}>
+            <TouchableOpacity onPress={() => {
+              this.props.navigation.navigate('MainChat');
+            }}>
+              <Text style={styles.borderButton}>Continue</Text>
+            </TouchableOpacity>
           </View>
         </>
       );

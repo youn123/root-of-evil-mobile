@@ -118,9 +118,9 @@ class Handle extends React.Component {
           }
         });
     } else {
-      let gameState = getGameStateFromStore(store.getState());
+      let gameState = getGameStateFromStore(store);
 
-      let { newGameState, response } = RootOfEvil.apply(gameState, {
+      let { newGameState } = RootOfEvil.apply(gameState, {
         type: 'JOIN',
         handle: input,
       });

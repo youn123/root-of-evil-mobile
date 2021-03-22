@@ -55,7 +55,7 @@ class RoleAssignment extends React.Component {
     if (this.props.isHost) {
       sleep(2000)
         .then(() => {
-          let { newGameState } = RootOfEvil.startWithConfig(getGameStateFromStore(store.getState()), {
+          let { newGameState } = RootOfEvil.startWithConfig(getGameStateFromStore(store), {
             numEvilMembers: 1
           });
     
@@ -71,7 +71,7 @@ class RoleAssignment extends React.Component {
             type: 'MESSAGE',
             from: '__announcement_high',
             to: '__everyone',
-            text: `Team lead for mission ${this.props.currentMission} is ${this.props.teamLead}. Choose ${this.props.missions[this.props.currentMission].numPeople} people to go on the mission.`
+            text: `Team lead for mission ${this.props.currentMissionIndex} is ${this.props.teamLead}. Choose ${this.props.currentMission.numPeople} people to go on the mission.`
           })
         });
     }
@@ -163,10 +163,10 @@ function mapStateToProps(state) {
     evilMembers: state.evilMembers,
     role: state.role,
     handle: state.handle,
-    currentMission: state.currentMission,
-    teamLead: state.players[state.teamLead],
-    players: state.players,
-    missions: state.missions
+    currentMissionIndex: state.currentMissionIndex,
+    currentMission: state.missions[state.currentMissionIndex],
+    teamLead: state.players[state.teamLeadIndex],
+    players: state.players
   };
 }
 

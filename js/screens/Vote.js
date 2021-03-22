@@ -135,7 +135,7 @@ class Vote extends React.Component {
 function mapStateToProps(state) {
   return {
     handle: state.handle,
-    teamLead: state.players[state.teamLead],
+    teamLead: state.players[state.teamLeadIndex],
     votes: state.votes,
     proposedTeam: state.proposedTeam,
     role: state.role

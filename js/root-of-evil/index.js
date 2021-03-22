@@ -9,21 +9,38 @@ const Roles = {
 function createNew() {
   return {
     players: [],
-    state: 'Created',
+    state: 'Created', // enum(Created, TeamBuilding, Vote, MissionComplete, FBIWon, RootOfEvilWon)
     evilMembers: [],
     missions: [
-      {numPeople: 2},
-      {numPeople: 2},
-      {numPeople: 3},
-      {numPeople: 3},
-      {numPeople: 3}
+      {numPeople: 2, status: null},
+      {numPeople: 2, status: null},
+      {numPeople: 3, status: null},
+      {numPeople: 3, status: null},
+      {numPeople: 3, status: null}
     ],
-    currentMission: 0,
-    teamLead: null,
-    votes: {},
+    currentMissionIndex: 0,
+    teamLeadIndex: null,
+    // Mission-specific state
     proposedTeam: null,
+    votes: {},
     killVotes: {},
-    killContracts: []
+    killContracts: [],
+    lastMissionStatus: null,
+    lastKilled: null,
+    lastPrivateChatLeaked: null
+  };
+}
+
+function clearLastMissionState(gameState) {
+  return {
+    ...gameState,
+    proposedTeam: null,
+    votes: {},
+    killVotes: {},
+    killContracts: [],
+    lastMissionStatus: null,
+    lastKilled: null,
+    lastPrivateChatLeaked: null
   };
 }
   
@@ -78,14 +95,7 @@ function vote(gameState, action) {
     votes: votesCopy
   };
 
-  let statusReport = generateStatusReport(newGameState);
-
-  if (statusReport) {
-    newGameState.statusReport = statusReport;
-    newGameState.state = 'MissionComplete';
-  }
-
-  return newGameState;
+  return generateMissionStatus(newGameState);
 }
 
 function voteToKill(gameState, action) {
@@ -97,20 +107,15 @@ function voteToKill(gameState, action) {
     killVotes: killVotesCopy
   };
 
-  let statusReport = generateStatusReport(newGameState);
-
-  if (statusReport) {
-    newGameState.statusReport = statusReport;
-    newGameState.state = 'MissionComplete';
-  }
-
-  return newGameState;
+  return generateMissionStatus(newGameState);
 }
 
-function generateStatusReport(gameState) {
+function generateMissionStatus(gameState) {
+  let newGameState = {...gameState};
   let numVotedYes = 0;
   let numVotedNo = 0;
 
+  // Count number of votes
   for (let member of Object.keys(gameState.votes)) {
     if (gameState.votes[member]) {
       numVotedYes++;
@@ -119,6 +124,7 @@ function generateStatusReport(gameState) {
     }
   }
 
+  // Count number of kill votes
   let numKillVotes = 0;
   let victimsToVotes = {};
   let victim = null;
@@ -129,7 +135,7 @@ function generateStatusReport(gameState) {
 
     if (victim) {
       if (!victimsToVotes[victim]) {
-        victimsToVotes[victim] = 0;
+        victimsToVotes[victim] = 1;
       } else {
         victimsToVotes[victim]++;
       }
@@ -137,18 +143,45 @@ function generateStatusReport(gameState) {
   }
 
   if ((numVotedYes + numVotedNo) == gameState.players.length && numKillVotes == gameState.evilMembers.length) {
-    console.log('Doh!');
     let victimSuccessfullyKilled = victim && victimsToVotes[victim] == gameState.evilMembers.length;
     let victimHadKillContract = victimSuccessfullyKilled && gameState.killContracts.includes(victim);
+    let missionStatus = victimHadKillContract ? false : numVotedYes >= gameState.players.length / 2.0 ? true : false;
 
-    return {
-      mission: victimHadKillContract ? false : numVotedYes >= gameState.players.length / 2.0 ? true : false,
-      killed: victimSuccessfullyKilled ? victim : null,
-      privateChatLeaked: victim && !victimHadKillContract
+    let missionsCopy = [...gameState.missions];
+
+    missionsCopy[gameState.currentMissionIndex] = {
+      ...gameState.missions[gameState.currentMissionIndex],
+      status: missionStatus
     };
-  } else {
-    return null;
+
+    newGameState.missions = missionsCopy;
+    newGameState.lastMissionStatus = missionStatus;
+    newGameState.lastKilled = victimSuccessfullyKilled ? victim : null;
+    newGameState.lastPrivateChatLeaked = victim && !victimHadKillContract;
+    newGameState.currentMissionIndex = newGameState.currentMissionIndex + 1;
+    newGameState.teamLeadIndex = (newGameState.teamLeadIndex + 1) % gameState.players.length;
+
+    let fbiWonMissions = 0;
+    let rootOfEvilWonMissions = 0;
+
+    for (let mission of gameState.missions) {
+      if (mission.status) {
+        fbiWonMissions++;
+      } else if (mission.status !== null && !mission.status) {
+        rootOfEvilWonMissions++;
+      }
+    }
+
+    if (fbiWonMissions >= 3) {
+      newGameState.state = 'FBIWon';
+    } else if (rootOfEvilWonMissions >= 3) {
+      newGameState.state = 'RootOfEvilWon';
+    } else {
+      newGameState.state = 'MissionComplete';
+    }
   }
+
+  return newGameState;
 }
   
 function start(gameState) {
@@ -167,13 +200,13 @@ function start(gameState) {
   }
 
   let { chosen } = chooseNoReplacement(gameState.players, numEvilMembers);
-  let teamLead = choose(gameState.players);
+  let teamLeadIndex = choose(gameState.players);
 
   let newGameState = {
     ...gameState,
     evilMembers: chosen,
     state: 'TeamBuilding',
-    teamLead
+    teamLeadIndex
   };
 
   return {
@@ -188,13 +221,13 @@ function start(gameState) {
 function startWithConfig(gameState, config) {
   let numEvilMembers = config.numEvilMembers;
   let { chosen } = chooseNoReplacement(gameState.players, numEvilMembers);
-  let teamLead = choose(gameState.players);
+  let teamLeadIndex = choose(gameState.players);
 
   let newGameState = {
     ...gameState,
     evilMembers: chosen,
     state: 'TeamBuilding',
-    teamLead
+    teamLeadIndex
   };
 
   return {
@@ -208,6 +241,7 @@ function startWithConfig(gameState, config) {
 
 module.exports = {
   createNew,
+  clearLastMissionState,
   apply,
   start,
   startWithConfig,

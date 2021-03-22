@@ -150,7 +150,7 @@ function mapStateToProps(state) {
   return {
     players: state.players,
     missions: state.missions,
-    currentMission: state.missions[state.currentMission],
+    currentMission: state.missions[state.currentMissionIndex],
     handle: state.handle,
     gameState: state.state,
     role: state.role

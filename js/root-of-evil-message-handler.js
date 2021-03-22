@@ -15,7 +15,7 @@ export function hostHandleRootOfEvilMessage(messages, lobby, store) {
         // I'm host, so I already have the latest game state
         break;
       case 'JOIN':
-        let { newGameState, response } = RootOfEvil.apply(getGameStateFromStore(store.getState()), message);
+        let { newGameState, response } = RootOfEvil.apply(getGameStateFromStore(store), message);
         finalGameState = newGameState;
 
         lobby.respondTo(message, response);
@@ -42,7 +42,8 @@ export function hostHandleRootOfEvilMessage(messages, lobby, store) {
   
 export function clientHandleRootOfEvilMessage(messages, lobby, store) {
   for (let message of messages) {
-    let { type, to, from, ...gameState } = removeMetadata(message);
+    let messageWithoutMetadata = removeMetadata(message);
+    let { type, to, from, ...gameState } = messageWithoutMetadata;
     let newGameState;
 
     switch (type) {
@@ -194,7 +195,7 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
         });
         break;
       case 'VOTE':
-        newGameState = RootOfEvil.apply(getGameStateFromStore(store.getState()), message);
+        newGameState = RootOfEvil.apply(getGameStateFromStore(store), messageWithoutMetadata);
 
         console.log(`${store.getState().handle} received VOTE.`);
         console.log(newGameState.newGameState);
@@ -205,7 +206,7 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
         });
         break;
       case 'KILL':
-        newGameState = RootOfEvil.apply(getGameStateFromStore(store.getState()), message);
+        newGameState = RootOfEvil.apply(getGameStateFromStore(store), messageWithoutMetadata);
 
         store.dispatch({
           type: 'SET_GAME_STATE',

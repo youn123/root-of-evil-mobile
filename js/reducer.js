@@ -5,15 +5,25 @@ const INITIAL_STATE = {
   handle: '',
   messages: [],
   role: null,
-  evilMembers: ['steve', 'chenchen', 'qin', 'Youn'],
   privateChatId: null,
   privateChatLifeCycleState: {type: 'None'},
   privateMessages: [],
   abilityInCooldown: false,
   numHacksRemaining: 7,
+  // Game state
+  players: null,
+  state: null, // enum(Created, TeamBuilding, Vote, MissionComplete, FBIWon, RootOfEvilWon)
+  evilMembers: [],
+  missions: null,
+  currentMissionIndex: null,
+  teamLeadIndex: null,
   proposedTeam: null,
   votes: {},
-  state: null // enum('Created', 'TeamBuilding', 'Vote', 'StatusReport')
+  killVotes: {},
+  killContracts: [],
+  lastMissionStatus: null,
+  lastKilled: null,
+  lastPrivateChatLeaked: null
 };
 
 export default function reducer(state = INITIAL_STATE, action) {
@@ -110,10 +120,11 @@ export function getGameStateFromStore(store) {
     role,
     privateChatId,
     privateChatLifeCycleState,
+    privateMessages,
     abilityInCooldown,
     numHacksRemaining,
     ...gameState
-  } = store;
+  } = store.getState();
 
   return gameState;
 }

@@ -343,7 +343,7 @@ class MainChat extends React.Component {
             paddingVertical: 7
           }}>
             {this.props.missions.map((mission, index) => {
-              return <MissionIndicator {...mission} current={this.props.currentMission == index} />;
+              return <MissionIndicator {...mission} current={this.props.currentMissionIndex == index} />;
             })}
           </View>
         </View>
@@ -420,12 +420,12 @@ function mapStateToProps(state) {
     messages: state.messages,
     handle: state.handle,
     missions: state.missions,
-    currentMission: state.currentMission,
+    currentMissionIndex: state.currentMissionIndex,
     abilityInCooldown: state.abilityInCooldown,
     privateChatLifeCycleState: state.privateChatLifeCycleState,
     role: state.role,
     numHacksRemaining: state.numHacksRemaining,
-    teamLead: state.players[state.teamLead],
+    teamLead: state.players[state.teamLeadIndex],
     gameState: state.state
   };
 }
