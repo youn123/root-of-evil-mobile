@@ -215,7 +215,8 @@ class MainChat extends React.Component {
 
     if (this.props.role == RootOfEvil.Roles.RootOfEvil) {
       if (this.props.privateChatLifeCycleState.type == 'None' && prevProps.privateChatLifeCycleState.type == 'Connected') {
-        this.timeGatedButton.startCountdown();
+        this.privateChatButton.startCountdown();
+        this.props.setAbilityInCooldown(true);
       }
   
       if (this.props.privateChatLifeCycleState.type == 'Requested' && prevProps.privateChatLifeCycleState != this.props.privateChatLifeCycleState) {
@@ -251,6 +252,7 @@ class MainChat extends React.Component {
       from: this.props.handle,
       to: '__everyone',
       text: this.state.text,
+      fromTeamLead: this.props.teamLead == this.props.handle,
       id: `${this.props.handle}-${nextId()}`
     })
       .then(() => {
@@ -298,7 +300,7 @@ class MainChat extends React.Component {
                     time={60000}
                     // How to properly handle 'ref is not a prop' warning?
                     myRef={ref => {
-                      this.timeGatedButton = ref;
+                      this.privateChatButton = ref;
                     }}
                     onPress={() => {
                       this.props.navigation.navigate('PrivateChat');
@@ -350,7 +352,7 @@ class MainChat extends React.Component {
         <View style={{flex: 1}}>
           <FlatList
             data={this.props.messages}
-            renderItem={({item}) => <TextBubble {...item} />}
+            renderItem={({item}) => <TextBubble {...item} handleStyle={{color: item.fromTeamLead ? '#58fcec' : 'white'}} />}
             keyExtractor={item => item.id}
             ref={ref => {
               this.flatListRef = ref;

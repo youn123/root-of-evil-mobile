@@ -122,10 +122,8 @@ class PrivateChat extends React.Component {
       this.setState({screenState: 'Connected'});
     }
 
-    if (this.props.privateChatLifeCycleState.type === 'None' && prevProps.privateChatLifeCycleState.type == 'Connected') {
-      this.setState({screenState: 'Terminated'});
-    }
-    
+    if (prevProps.privateChatLifeCycleState.type == 'Connected' && this.props.privateChatLifeCycleState.type == 'None' && prevState.screenState != 'Left')
+
     if (this.state.endReached && prevProps.messages != this.props.messages) {
       this.flatListRef && this.flatListRef.scrollToEnd();
     }
@@ -299,8 +297,7 @@ class PrivateChat extends React.Component {
           }}>
             <Text style={{
               marginBottom: 5
-            }}>Select who you want to talk to.</Text>
-            <Text>You can select more than one person, but group chat increases the risk of being hacked.</Text>
+            }}>Select who you want to talk to. You can select more than one person to form a group chat.</Text>
           </View>
           <View>
             <ScrollView contentContainerStyle={{
@@ -446,7 +443,7 @@ class PrivateChat extends React.Component {
           </TouchableOpacity>
           <ShowWhen condition={this.props.privateChatLifeCycleState.hasTerminatePrivilege}>
             <TouchableOpacity onPress={this.handleTerminate}>
-              <Text style={{color: 'red'}}>Terminate</Text>
+              <Text>Terminate</Text>
             </TouchableOpacity>
           </ShowWhen>
           <ShowWhen condition={!this.props.privateChatLifeCycleState.hasTerminatePrivilege}>
@@ -462,14 +459,14 @@ class PrivateChat extends React.Component {
 
               this.props.clearPrivateChat();
             }}>
-              <Text style={{color: 'red'}}>Leave</Text>
+              <Text>Leave</Text>
             </TouchableOpacity>
           </ShowWhen>
         </View>
         <View style={{flex: 1}}>
           <FlatList
             data={this.props.messages}
-            renderItem={({item}) => <TextBubble handleStyle={{color: '#58fcec'}} textStyle={{color: '#58fcec'}} {...item} />}
+            renderItem={({item}) => <TextBubble handleStyle={{color: 'red'}} textStyle={{color: 'red'}} {...item} />}
             keyExtractor={item => item.id}
             ref={ref => {
               this.flatListRef = ref;

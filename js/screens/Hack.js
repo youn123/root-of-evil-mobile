@@ -297,7 +297,7 @@ class Hack extends React.Component {
         <View style={{flex: 1}}>
           <FlatList
             data={this.props.messages}
-            renderItem={({item}) => <TextBubble handleStyle={{color: '#58fcec'}} textStyle={{color: '#58fcec'}} {...item} />}
+            renderItem={({item}) => <TextBubble handleStyle={{color: 'red'}} textStyle={{color: 'red'}} {...item} />}
             keyExtractor={item => item.id}
             ref={ref => {
               this.flatListRef = ref;

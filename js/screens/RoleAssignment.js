@@ -7,7 +7,10 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  ScrollView
+  ScrollView,
+  Animated,
+  Image,
+  Dimensions
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
@@ -20,8 +23,13 @@ import { Handles } from '../components';
 
 import Lobby from '../lobby';
 // import Lobby from '../mocks/lobby';
+import { ShowWhen } from '../hoc';
 
 const PRIMARY = '#0D0628';
+
+const { height } = Dimensions.get('window');
+
+console.log(height);
 
 const styles = StyleSheet.create({
   container: {
@@ -48,7 +56,8 @@ const styles = StyleSheet.create({
 
 class RoleAssignment extends React.Component {
   state = {
-    screenState: 'Loading'
+    screenState: 'Loading',
+    showInstructions: false
   };
 
   componentDidMount() {
@@ -56,7 +65,7 @@ class RoleAssignment extends React.Component {
       sleep(2000)
         .then(() => {
           let { newGameState } = RootOfEvil.startWithConfig(getGameStateFromStore(store), {
-            numEvilMembers: 1
+            numEvilMembers: 2
           });
     
           this.props.setGameState(newGameState);
@@ -75,6 +84,9 @@ class RoleAssignment extends React.Component {
           })
         });
     }
+
+    this.animateLogo = new Animated.Value(0);
+    this.moveLogo = new Animated.Value(0);
   }
 
   componentDidUpdate(prevProps) {
@@ -84,6 +96,29 @@ class RoleAssignment extends React.Component {
       } else {
         this.props.setRole(RootOfEvil.Roles.FBI);
       }
+
+      Animated.sequence([
+        Animated.timing(this.animateLogo, {
+          toValue: 2,
+          duration: 500,
+          useNativeDriver: true
+        }),
+        Animated.delay(500),
+        Animated.parallel([
+          Animated.timing(this.moveLogo, {
+            toValue: -100,
+            duration: 500,
+            useNativeDriver: true
+          }),
+          Animated.timing(this.animateLogo, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true
+          })
+        ])
+      ]).start(() => {
+        this.setState({showInstructions: true});
+      });
     }
   }
 
@@ -118,44 +153,72 @@ class RoleAssignment extends React.Component {
 
     if (this.props.role == RootOfEvil.Roles.RootOfEvil) {
       return (
-        <SafeAreaView style={[styles.container, {justifyContent: 'center'}]}>
-          <Text style={{fontSize: 28}}>
-            You are a <Text style={{color: 'red'}}>Root of Evil</Text> operative.
-          </Text>
-          <Text style={{marginTop: 20}}>
-            Your job is to sabotage the FBI from within.
-          </Text>
-          <Text>
-            Work closely with <Handles names={this.props.evilMembers.filter(name => name != this.props.handle)} nameColor='red' />.
-          </Text>
-          <TouchableOpacity
-            style={{alignSelf: 'center', marginTop: 20}}
-            onPress={this.handleContinue}
-          >
-            <Text style={styles.nextButton}>Continue</Text>
-          </TouchableOpacity>
+        <SafeAreaView style={[styles.container, {justifyContent: 'flex-start', alignItems: 'center'}]}>
+          <Animated.Image
+            style={{
+              transform: [{scale: this.animateLogo}, {translateY: this.moveLogo}],
+              width: 125,
+              height: 125,
+              margin: 0,
+              position: 'absolute',
+              top: '40%'
+            }}
+            source={require('../../assets/RootOfEvil.png')}
+          />
+          <ShowWhen condition={this.state.showInstructions}>
+            <View style={{marginTop: '40%', paddingTop: 110}}>
+              {/* <View style={{backgroundColor: 'red', width: 100, height: 100}} /> */}
+              <Text style={{fontSize: 28}}>
+                You are a <Text style={{color: 'red'}}>Root of Evil</Text> operative.
+              </Text>
+              <Text style={{marginTop: 20}}>
+                Your job is to sabotage the FBI from within. Work closely with <Handles names={this.props.evilMembers.filter(name => name != this.props.handle)} nameColor='red' />.
+              </Text>
+              <TouchableOpacity
+                style={{alignSelf: 'center', marginTop: 20}}
+                onPress={this.handleContinue}
+              >
+                <Text style={styles.nextButton}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </ShowWhen>
         </SafeAreaView>
       );
     } else if (this.props.role == RootOfEvil.Roles.FBI) {
       return (
-        <SafeAreaView style={[styles.container, {justifyContent: 'center'}]}>
-          <Text style={{fontSize: 28}}>
-            You are an <Text style={{color: '#485696'}}>FBI</Text> agent.
-          </Text>
-          <Text style={{marginTop: 20}}>
-            Your job is to complete missions successfully.
-          </Text>
-          <TouchableOpacity
-            style={{alignSelf: 'center', marginTop: 20}}
-            onPress={this.handleContinue}
-          >
-            <Text style={styles.nextButton}>Continue</Text>
-          </TouchableOpacity>
+        <SafeAreaView style={[styles.container, {justifyContent: 'flex-start', alignItems: 'center'}]}>
+          <Animated.Image
+            style={{
+              transform: [{scale: this.animateLogo}, {translateY: this.moveLogo}],
+              width: 125,
+              height: 125,
+              margin: 0,
+              position: 'absolute',
+              top: '40%'
+            }}
+            source={require('../../assets/FBI.png')}
+          />
+          <ShowWhen condition={this.state.showInstructions}>
+            <View style={{marginTop: '40%', paddingTop: 110}}>
+              <Text style={{fontSize: 28}}>
+                You are an <Text style={{color: '#485696'}}>FBI</Text> agent.
+              </Text>
+              <Text style={{marginTop: 20}}>
+                Your job is to complete missions successfully.
+              </Text>
+              <TouchableOpacity
+                style={{alignSelf: 'center', marginTop: 20}}
+                onPress={this.handleContinue}
+              >
+                <Text style={styles.nextButton}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </ShowWhen>
         </SafeAreaView>
       );
     }
   }
-};
+}
 
 function mapStateToProps(state) {
   return {
