@@ -21,15 +21,13 @@ import store from '../store';
 import { sleep, generateRandomBase64String } from '../utils';
 import { Handles } from '../components';
 
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 import { ShowWhen } from '../hoc';
 
 const PRIMARY = '#0D0628';
 
 const { height } = Dimensions.get('window');
-
-console.log(height);
 
 const styles = StyleSheet.create({
   container: {
@@ -65,7 +63,7 @@ class RoleAssignment extends React.Component {
       sleep(2000)
         .then(() => {
           let { newGameState } = RootOfEvil.startWithConfig(getGameStateFromStore(store), {
-            numEvilMembers: 2
+            numEvilMembers: 0
           });
     
           this.props.setGameState(newGameState);

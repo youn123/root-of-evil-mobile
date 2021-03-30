@@ -21,8 +21,8 @@ import { TextBubble, RetroLoadingIndicator, Handles } from '../components';
 import { PrivateChatStore } from '../root-of-evil';
 
 import { ShowWhen } from '../hoc';
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const fakeEvilMembers = ['qin', 'youn', 'steve'];
 

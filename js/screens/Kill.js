@@ -12,8 +12,8 @@ import { connect } from 'react-redux';
 
 import { PRIMARY, SECONDARY } from '../settings';
 
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -63,10 +63,10 @@ class Kill extends React.Component {
     Lobby.getCurrentLobby().send({
       type: 'KILL',
       from: this.props.handle,
-      selected: this.state.selected
+      victim: this.state.selected ? this.state.selected : '__None'
     });
 
-    this.props.navigation.navigate('StatusReport');
+    this.props.navigation.navigate('Mission');
   }
 
   setStateAsync = newState => {
@@ -122,6 +122,7 @@ class Kill extends React.Component {
 function mapStateToProps(state) {
   return {
     players: state.players,
+    handle: state.handle
   };
 }
 

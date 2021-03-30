@@ -24,7 +24,7 @@ import {
   Hack,
   ProposeTeam,
   Vote,
-  StatusReport,
+  Mission,
   Kill
 } from './js/screens';
 
@@ -62,7 +62,7 @@ class App extends React.Component {
             <Stack.Screen name='Hack' component={Hack} />
             <Stack.Screen name='ProposeTeam' component={ProposeTeam} />
             <Stack.Screen name='Vote' component={Vote} />
-            <Stack.Screen name='StatusReport' component={StatusReport} />
+            <Stack.Screen name='Mission' component={Mission} />
             <Stack.Screen name='Kill' component={Kill} />
           </>
         );

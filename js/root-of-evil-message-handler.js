@@ -5,7 +5,6 @@ import { removeMetadata } from './lobby';
 import { obfuscateMessage } from './utils';
 
 export function hostHandleRootOfEvilMessage(messages, lobby, store) {
-  console.log(`Host received ${messages.length} messages.`);
   let finalGameState;
 
   for (let message of messages) {
@@ -179,26 +178,24 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
         }
         break;
       case 'PROPOSE_TEAM':
-        let votes = {};
-        store.getState().players.forEach(player => {
-          votes[player] = null;
+        newGameState = {...getGameStateFromStore(store)};
+
+        newGameState.state = 'Vote';
+        newGameState.proposedTeam = message.proposedTeam;
+
+        newGameState = RootOfEvil.apply(newGameState, {
+          type: 'VOTE',
+          accept: true,
+          from
         });
-        votes[from] = true;
 
         store.dispatch({
           type: 'SET_GAME_STATE',
-          gameState: {
-            state: 'Vote',
-            proposedTeam: message.proposedTeam,
-            votes
-          },
+          gameState: newGameState
         });
         break;
       case 'VOTE':
         newGameState = RootOfEvil.apply(getGameStateFromStore(store), messageWithoutMetadata);
-
-        console.log(`${store.getState().handle} received VOTE.`);
-        console.log(newGameState.newGameState);
 
         store.dispatch({
           type: 'SET_GAME_STATE',
@@ -206,6 +203,19 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
         });
         break;
       case 'KILL':
+        newGameState = RootOfEvil.apply(getGameStateFromStore(store), messageWithoutMetadata);
+
+        console.log('Message:');
+        console.log(messageWithoutMetadata);
+        console.log(`Handler KILL:`);
+        console.log(newGameState);
+
+        store.dispatch({
+          type: 'SET_GAME_STATE',
+          gameState: newGameState
+        });
+        break;
+      case 'DO_MISSION':
         newGameState = RootOfEvil.apply(getGameStateFromStore(store), messageWithoutMetadata);
 
         store.dispatch({

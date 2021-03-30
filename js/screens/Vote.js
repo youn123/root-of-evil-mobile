@@ -22,8 +22,8 @@ import { Handles } from '../components';
 import RootOfEvil from '../root-of-evil';
 
 import { ShowWhen } from '../hoc';
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -72,31 +72,17 @@ class Vote extends React.Component {
     BackHandler.removeEventListener('hardwareBackPress', this.handleBackButton);
   }
 
-  handleAccept = () => {
+  handleVote = accept => {
     Lobby.getCurrentLobby().send({
       type: 'VOTE',
-      accept: true,
+      accept,
       from: this.props.handle
     });
 
     if (this.props.role == RootOfEvil.Roles.RootOfEvil) {
       this.props.navigation.navigate('Kill');
     } else {
-      this.props.navigation.navigate('StatusReport');
-    }
-  }
-
-  handleReject = () => {
-    Lobby.getCurrentLobby().send({
-      type: 'VOTE',
-      accept: false,
-      from: this.props.handle
-    });
-
-    if (this.props.role == RootOfEvil.Roles.RootOfEvil) {
-      this.props.navigation.navigate('Kill');
-    } else {
-      this.props.navigation.navigate('StatusReport');
+      this.props.navigation.navigate('Mission');
     }
   }
 
@@ -119,10 +105,14 @@ class Vote extends React.Component {
           </Text>
           <Text style={{marginTop: 5}}>Do you accept?</Text>
           <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 20}}>
-            <TouchableOpacity onPress={this.handleAccept}>
+            <TouchableOpacity onPress={() => {
+              this.handleVote(true);
+            }}>
               <Text style={styles.borderButton}>Accept</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={this.handleReject}>
+            <TouchableOpacity onPress={() => {
+              this.handleVote(false);
+            }}>
               <Text style={styles.borderButton}>Reject</Text>
             </TouchableOpacity>
           </View>

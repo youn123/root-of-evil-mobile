@@ -24,8 +24,8 @@ import { nextId } from '../utils';
 import TextBubble from '../components/TextBubble';
 import { ShowWhen } from '../hoc';
 import RootOfEvil from '../root-of-evil';
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {

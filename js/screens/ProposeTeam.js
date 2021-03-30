@@ -13,8 +13,8 @@ import { connect } from 'react-redux';
 import { PRIMARY, SECONDARY } from '../settings';
 import RootOfEvil from '../root-of-evil';
 
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -79,7 +79,7 @@ class ProposeTeam extends React.Component {
     if (this.props.role == RootOfEvil.Roles.RootOfEvil) {
       this.props.navigation.navigate('Kill');
     } else {
-      this.props.navigation.navigate('StatusReport');
+      this.props.navigation.navigate('Mission');
     }
   }
 

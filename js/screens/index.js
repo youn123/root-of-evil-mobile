@@ -9,7 +9,7 @@ import PrivateChat from './PrivateChat';
 import Hack from './Hack';
 import ProposeTeam from './ProposeTeam';
 import Vote from './Vote';
-import StatusReport from './StatusReport';
+import Mission from './Mission';
 import Kill from './Kill';
 
 module.exports = {
@@ -24,6 +24,6 @@ module.exports = {
   Hack,
   ProposeTeam,
   Vote,
-  StatusReport,
+  Mission,
   Kill
 };

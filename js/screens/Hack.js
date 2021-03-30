@@ -18,9 +18,9 @@ import { PRIMARY, SECONDARY } from '../settings';
 import { TextBubble, RetroLoadingIndicator } from '../components';
 import store from '../store';
 
-import Lobby from '../lobby';
+// import Lobby from '../lobby';
 import { sleep, obfuscateMessage } from '../utils';
-// import Lobby from '../mocks/lobby';
+import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
