@@ -17,10 +17,10 @@ import { ShowWhen } from '../hoc';
 import { SERVER_ADDR } from '../../env';
 import RootOfEvil from '../root-of-evil';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
-const PRIMARY = '#0D0628';
+import { PRIMARY, SECONDARY, ACCENT } from '../settings';
 
 const styles = StyleSheet.create({
   container: {
@@ -150,7 +150,7 @@ class Join extends React.Component {
           <TouchableOpacity
             style={[
               styles.nextButton,
-              {backgroundColor: this.joinButtonDisabled() ? 'grey' : 'red'}
+              {backgroundColor: this.joinButtonDisabled() ? SECONDARY : ACCENT}
             ]}
             disabled={this.joinButtonDisabled()}
             onPress={this.handleNext}

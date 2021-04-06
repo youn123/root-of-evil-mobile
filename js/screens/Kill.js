@@ -12,8 +12,8 @@ import { connect } from 'react-redux';
 
 import { PRIMARY, SECONDARY } from '../settings';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {

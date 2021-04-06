@@ -18,14 +18,14 @@ import { connect } from 'react-redux';
 import RootOfEvil from '../root-of-evil';
 import { getGameStateFromStore } from '../reducer';
 import store from '../store';
-import { sleep, generateRandomBase64String } from '../utils';
+import { sleep, generateRandomBase64String, nextId } from '../utils';
 import { Handles } from '../components';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 import { ShowWhen } from '../hoc';
 
-const PRIMARY = '#0D0628';
+import { PRIMARY } from '../settings';
 
 const { height } = Dimensions.get('window');
 
@@ -63,7 +63,7 @@ class RoleAssignment extends React.Component {
       sleep(2000)
         .then(() => {
           let { newGameState } = RootOfEvil.startWithConfig(getGameStateFromStore(store), {
-            numEvilMembers: 0
+            numEvilMembers: 2
           });
     
           this.props.setGameState(newGameState);
@@ -71,15 +71,16 @@ class RoleAssignment extends React.Component {
           Lobby.getCurrentLobby().send({
             ...newGameState,
             type: 'NEW_GAME_STATE',
-            to: '__everyone'
+            to: '__everyone',
           });
 
           Lobby.getCurrentLobby().send({
             type: 'MESSAGE',
             from: '__announcement_high',
             to: '__everyone',
+            id: `${this.props.handle}-${nextId()}`,
             text: `Team lead for mission ${this.props.currentMissionIndex} is ${this.props.teamLead}. Choose ${this.props.currentMission.numPeople} people to go on the mission.`
-          })
+          });
         });
     }
 
@@ -126,7 +127,7 @@ class RoleAssignment extends React.Component {
       from: '__announcement_low',
       to: '__everyone',
       text: `${this.props.handle} has joined the chat.`,
-      id: generateRandomBase64String(5)
+      id: `${this.props.handle}-${nextId()}`,
     });
 
     this.props.setAppState('InGame');

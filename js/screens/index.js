@@ -1,4 +1,4 @@
-import Home from './Home';
+import Menu from './Menu';
 import Join from './Join';
 import Handle from './Handle';
 import MainChat from './MainChat';
@@ -13,7 +13,7 @@ import Mission from './Mission';
 import Kill from './Kill';
 
 module.exports = {
-  Home,
+  Menu,
   Join,
   Handle,
   MainChat,

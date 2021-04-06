@@ -21,9 +21,10 @@ const INITIAL_STATE = {
   votes: {},
   killVotes: {},
   killContracts: [],
-  lastMissionStatus: null,
-  lastKilled: null,
-  lastPrivateChatLeaked: null
+  missionStatus: null,
+  killAttempted: null,
+  killed: null,
+  privateChatLeaked: null
 };
 
 export default function reducer(state = INITIAL_STATE, action) {

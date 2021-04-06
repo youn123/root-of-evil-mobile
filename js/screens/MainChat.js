@@ -4,28 +4,23 @@ import {
   StyleSheet,
   View,
   Text,
-  StatusBar,
   TextInput,
   TouchableOpacity,
-  Modal,
-  ActivityIndicator,
   FlatList,
-  KeyboardAvoidingView,
   Keyboard,
   Dimensions,
-  BackHandler
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY } from '../settings';
+import { PRIMARY, SECONDARY, TERTIARY, ACCENT_WARM, ACCENT_HOT, ACCENT_COOL } from '../settings';
 
 import { nextId } from '../utils';
 import TextBubble from '../components/TextBubble';
 import { ShowWhen } from '../hoc';
 import RootOfEvil from '../root-of-evil';
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -85,20 +80,20 @@ const styles = StyleSheet.create({
   },
   announcementHigh: {
     fontStyle: 'italic',
-    color: '#F4D35E'
+    color: '#58fcec'
   },
   missionIndicator: {
-    backgroundColor: '#717C89',
+    backgroundColor: TERTIARY,
     borderRadius: 11,
     height: 22,
     width: 22,
-    marginRight: 7,
+    marginRight: 5,
     alignItems: 'center',
     justifyContent: 'center'
   },
   missionIndicatorHighlighted: {
     borderWidth: 1.5,
-    borderColor: '#F4D35E'
+    borderColor: ACCENT_WARM
   },
   timeGatedButtonOverlay: {
     height: 20,
@@ -135,11 +130,17 @@ const fakeChat = [
 ];
 
 function MissionIndicator(props) {
-  return (
-    <View style={[styles.missionIndicator, props.current && styles.missionIndicatorHighlighted]}>
-      <Text style={{fontSize: 16, textAlignVertical: 'center'}}>{props.numPeople}</Text>
-    </View>
-  );
+  if (props.status === null) {
+    return (
+      <View style={[styles.missionIndicator, props.current && styles.missionIndicatorHighlighted]}>
+        <Text style={{fontSize: 16, textAlignVertical: 'center'}}>{props.numPeople}</Text>
+      </View>
+    );
+  } else if (props.status) {
+    return <Icon name='star' color={ACCENT_COOL} size={20} style={{marginBottom: 4, marginRight: 5}} />;
+  } else {
+    return <Icon name='skull' color={ACCENT_HOT} size={20} style={{marginRight: 5}} />;
+  }
 }
 
 class TimeGatedButton extends React.Component {
@@ -199,7 +200,7 @@ class MainChat extends React.Component {
     Keyboard.addListener('keyboardDidHide', this.handleKeyboardDidHide);
 
     this.props.navigation.addListener('focus', () => {
-      console.log('MainChat focused');
+      // console.log('MainChat focused');
     });
   }
 
@@ -281,7 +282,7 @@ class MainChat extends React.Component {
                 <Icon
                   name='people-outline'
                   size={23}
-                  color='#485696'
+                  color='white'
                 /> 
               </View>
               <View style={{
@@ -328,7 +329,7 @@ class MainChat extends React.Component {
                     <Text style={{marginRight: 3, color: this.props.numHacksRemaining == 0 ? 'grey' : 'white'}}>Hack</Text>
                   </TouchableOpacity>
                   <View style={{
-                    backgroundColor: 'grey',
+                    backgroundColor: TERTIARY,
                     paddingHorizontal: 2,
                     borderRadius: 2
                   }}>
@@ -352,7 +353,7 @@ class MainChat extends React.Component {
         <View style={{flex: 1}}>
           <FlatList
             data={this.props.messages}
-            renderItem={({item}) => <TextBubble {...item} handleStyle={{color: item.fromTeamLead ? '#58fcec' : 'white'}} />}
+            renderItem={({item}) => <TextBubble {...item} />}
             keyExtractor={item => item.id}
             ref={ref => {
               this.flatListRef = ref;
@@ -397,7 +398,7 @@ class MainChat extends React.Component {
               this.setState({text});
             }}
             placeholder='Choose your words carefully.'
-            placeholderTextColor='#485696'
+            placeholderTextColor={TERTIARY}
             multiline
             maxLength={140}
             value={this.state.text}

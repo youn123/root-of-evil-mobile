@@ -10,11 +10,11 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT } from '../settings';
 import RootOfEvil from '../root-of-evil';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -102,7 +102,7 @@ class ProposeTeam extends React.Component {
               <Icon
                 name='chevron-back-outline'
                 size={40}
-                color='#485696'
+                color='white'
               /> 
             </TouchableOpacity>
           </View>
@@ -127,7 +127,7 @@ class ProposeTeam extends React.Component {
                     this.handleSelect(member);
                   }}
                 >
-                  <View style={[styles.selectionOption, {backgroundColor: this.state.selected.hasOwnProperty(member) ? '#485696' : SECONDARY}]}>
+                  <View style={[styles.selectionOption, {backgroundColor: this.state.selected.hasOwnProperty(member) ? ACCENT : SECONDARY}]}>
                     <Text>{member}</Text>
                   </View>
                 </TouchableOpacity>

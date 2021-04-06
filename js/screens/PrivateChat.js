@@ -21,8 +21,8 @@ import { TextBubble, RetroLoadingIndicator, Handles } from '../components';
 import { PrivateChatStore } from '../root-of-evil';
 
 import { ShowWhen } from '../hoc';
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const fakeEvilMembers = ['qin', 'youn', 'steve'];
 
@@ -417,7 +417,7 @@ class PrivateChat extends React.Component {
                 <Icon
                   name='chevron-back-outline'
                   size={40}
-                  color='#485696'
+                  color='white'
                 /> 
               </TouchableOpacity>
             </View>

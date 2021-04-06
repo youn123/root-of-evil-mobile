@@ -17,11 +17,10 @@ import { getGameStateFromStore } from '../reducer';
 import store from '../store';
 import RootOfEvil from '../root-of-evil';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 import { clientHandleRootOfEvilMessage } from '../root-of-evil-message-handler';
-
-const PRIMARY = '#0D0628';
+import { PRIMARY, SECONDARY, ACCENT } from '../settings';
 
 const styles = StyleSheet.create({
   container: {
@@ -175,7 +174,7 @@ class Handle extends React.Component {
           <TouchableOpacity
             style={[
               styles.nextButton,
-              {backgroundColor: this.nextButtonDisabled() ? 'grey' : 'red'}
+              {backgroundColor: this.nextButtonDisabled() ? SECONDARY : ACCENT}
             ]}
             disabled={this.nextButtonDisabled()}
             onPress={this.handleNext}
@@ -183,7 +182,7 @@ class Handle extends React.Component {
             <Icon
               name='chevron-forward-outline'
               size={40}
-              color='white'
+              color={PRIMARY}
             />
           </TouchableOpacity>
         </View>

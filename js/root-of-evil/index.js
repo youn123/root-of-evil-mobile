@@ -27,22 +27,10 @@ function createNew() {
     killContracts: [],
     missionStatus: null,
     killed: null,
+    killAttempted: null,
     privateChatLeaked: null,
     completeMission: 0,
     failMission: 0
-  };
-}
-
-function clearLastMissionState(gameState) {
-  return {
-    ...gameState,
-    proposedTeam: null,
-    votes: {},
-    killVotes: {},
-    killContracts: [],
-    lastMissionStatus: null,
-    lastKilled: null,
-    lastPrivateChatLeaked: null
   };
 }
   
@@ -92,6 +80,13 @@ function join(gameState, joinData) {
 
 function vote(gameState, action) {
   let votesCopy = {...gameState.votes};
+  // First vote
+  if (Object.keys(votesCopy).length == 0) {
+    for (let player of gameState.players) {
+      votesCopy[player] = null;
+    }
+  }
+
   votesCopy[action.from] = action.accept;
 
   let newGameState = {
@@ -147,10 +142,11 @@ function countVotes(gameState) {
   }
 
   if ((numVotedYes + numVotedNo) == gameState.players.length && numKillVotes == gameState.evilMembers.length) {
-    let victimSuccessfullyKilled = victim && victimsToVotes[victim] == gameState.evilMembers.length && gameState.killContracts.includes(victim);
+    let victimSuccessfullyKilled = victim && victimsToVotes[victim] == gameState.evilMembers.length;
 
+    newGameState.killAttempted = victim;
     newGameState.killed = victimSuccessfullyKilled ? victim : null;
-    newGameState.privateChatLeaked = victim && !victimSuccessfullyKilled;
+    newGameState.privateChatLeaked = newGameState.killAttempted && (!victimSuccessfullyKilled || !gameState.killContracts.includes(victim));
 
     if (numVotedYes >= gameState.players.length / 2.0) {
       newGameState.state = 'MissionInProgress';
@@ -177,7 +173,7 @@ function doMission(gameState, action) {
   if ((newGameState.completeMission + newGameState.failMission) == gameState.proposedTeam.length) {
     let missionStatus;
 
-    if (gameState.killed) {
+    if (gameState.killed && gameState.killContracts.includes(gameState.killed)) {
       missionStatus = false;
     } else if (newGameState.failMission == 0) {
       missionStatus = true;
@@ -229,6 +225,7 @@ function tick(gameState) {
   newGameState.killVotes = {};
   newGameState.killContracts = [];
   newGameState.missionStatus = null;
+  newGameState.killAttempted = null;
   newGameState.killed = null;
   newGameState.privateChatLeaked = null;
   newGameState.completeMission = 0;
@@ -299,7 +296,6 @@ function startWithConfig(gameState, config) {
 
 module.exports = {
   createNew,
-  clearLastMissionState,
   apply,
   start,
   doMission,

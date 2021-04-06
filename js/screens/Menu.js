@@ -1,28 +1,15 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
-
-import React, { useState } from 'react';
+import React from 'react';
 import {
   SafeAreaView,
   StyleSheet,
-  ScrollView,
   View,
   Text,
   StatusBar,
   Animated,
-  Dimensions,
-  Button,
-  Keyboard,
-  TextInput,
   TouchableOpacity
 } from 'react-native';
 
-const PRIMARY = '#0D0628';
+import { PRIMARY } from '../settings';
 
 const styles = StyleSheet.create({
   container: {
@@ -53,8 +40,7 @@ const styles = StyleSheet.create({
   }
 });
 
-class Home extends React.Component {
-
+class Menu extends React.Component {
   state = {
     scale: new Animated.Value(0)
   };
@@ -107,4 +93,4 @@ class Home extends React.Component {
   }
 };
 
-export default Home;
+export default Menu;

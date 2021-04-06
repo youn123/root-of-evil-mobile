@@ -4,23 +4,18 @@ import {
   StyleSheet,
   View,
   Text,
-  TextInput,
   TouchableOpacity,
-  ActivityIndicator,
   ScrollView
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
 import store from '../store';
 import { ShowWhen } from '../hoc';
 
-// import { getCurrentLobby } from '../lobby';
-import { getCurrentLobby } from '../mocks/lobby';
-
+import { getCurrentLobby } from '../lobby';
+// import { getCurrentLobby } from '../mocks/lobby';
 import { hostHandleRootOfEvilMessage } from '../root-of-evil-message-handler';
-
-const PRIMARY = '#0D0628';
+import { PRIMARY, SECONDARY, ACCENT } from '../settings';
 
 const styles = StyleSheet.create({
   container: {
@@ -76,11 +71,11 @@ class Lobby extends React.Component {
         <View style={styles.header}>
           <Text style={{fontSize: 19}}>{this.props.lobbyCode}</Text>
           <ShowWhen condition={status == 'Waiting'}>
-            <Text style={[styles.nextButton, {backgroundColor: 'grey'}]}>Waiting...</Text>
+            <Text style={[styles.nextButton, {backgroundColor: SECONDARY}]}>Waiting...</Text>
           </ShowWhen>
           <ShowWhen condition={status == 'Ready'}>
             <TouchableOpacity onPress={this.handleStart}>
-              <Text style={[styles.nextButton, {backgroundColor: 'green'}]}>Start!</Text>
+              <Text style={[styles.nextButton, {backgroundColor: ACCENT, color: PRIMARY}]}>Start!</Text>
             </TouchableOpacity>
           </ShowWhen>
         </View>

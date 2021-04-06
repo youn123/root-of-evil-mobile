@@ -117,20 +117,14 @@ class Lobby {
       .then(res => {
         return res.json();
       })
-      .then(json => {
-        // console.log(`Received ${json.messages.length} messages. isHost: ${this.isHost}`);
+      .then(async json => {
         let messages = [];
 
         for (let message of json.messages) {
           message = JSON.parse(message);
 
-          // console.log(`Message has id: ${message._id} isHost: ${this.isHost}`);
-          // console.log(message);
-
           if (message._to === this.clientId) {
             if (message._id && this.pending.has(message._id)) {
-              // console.log('Doh!');
-
               let { resolve } = this.pending.get(message._id);
               this.pending.delete(message._id);
   
@@ -140,28 +134,12 @@ class Lobby {
           }
 
           messages.push(message);
-
-          // if (this.isHost && message.to === 'host') {
-          //   messages.push(message);
-          // } else if (message.to === 'everyone') {
-          //   messages.push(message);
-          // } else if (message.to === this.clientId) {
-          //   if (message._id && this.pending.has(message._id)) {
-          //     let { resolve } = this.pending.get(message._id);
-          //     this.pending.delete(message._id);
-  
-          //     resolve(message);
-          //   } else {
-          //     messages.push(message);
-          //   }
-          // } else if (Object.getPrototypeOf(message.to) == Array.prototype && message.to.includes(this.clientId)) {
-          //   messages.push(message);
-          // }
         }
 
         this.numMessagesReceived += json.messages.length;
+
         if (!this.stop) {
-          this.callback(messages);
+          await this.callback(messages);
         }
       });
   }

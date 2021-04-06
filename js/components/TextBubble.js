@@ -1,6 +1,8 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 
+import { TERTIARY, ACCENT } from '../settings';
+
 const styles = StyleSheet.create({
   bubble: {
     paddingHorizontal: 10,
@@ -12,11 +14,11 @@ const styles = StyleSheet.create({
   },
   announcementLow: {
     fontStyle: 'italic',
-    color: '#485696'
+    color: TERTIARY
   },
   announcementHigh: {
     fontStyle: 'italic',
-    color: '#F4D35E'
+    color: ACCENT
   }
 });
 

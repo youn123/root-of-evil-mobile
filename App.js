@@ -13,7 +13,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Provider, connect } from 'react-redux';
 
 import {
-  Home,
+  Menu,
   Join,
   Handle,
   MainChat,
@@ -41,7 +41,7 @@ class App extends React.Component {
       case 'Menu':
         stack = (
           <>
-            <Stack.Screen name='Home' component={Home} />
+            <Stack.Screen name='Menu' component={Menu} />
             <Stack.Screen name='Join' component={Join} />
             <Stack.Screen name='Handle' component={Handle} />
             <Stack.Screen name='New' component={New} />

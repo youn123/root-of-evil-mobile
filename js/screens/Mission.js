@@ -15,17 +15,17 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY } from '../settings';
+import { PRIMARY, SECONDARY, TERTIARY, ACCENT, ACCENT_HOT } from '../settings';
 
 import { sleep } from '../utils';
-import { RetroLoadingIndicator } from '../components';
+import { RetroLoadingIndicator, TextBubble } from '../components';
 import RootOfEvil from '../root-of-evil';
 import { getGameStateFromStore } from '../reducer';
 import store from '../store';
 
 import { ShowWhen } from '../hoc';
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -159,21 +159,21 @@ class Mission extends React.Component {
                       <Icon
                         name='hourglass-outline'
                         size={20}
-                        color='#485696'
+                        color={TERTIARY}
                       />
                     </ShowWhen>
                     <ShowWhen condition={this.props.votes[member]}>
                       <Icon
                         name='checkmark-circle-outline'
                         size={20}
-                        color='#8ac926'
+                        color={ACCENT}
                       />
                     </ShowWhen>
                     <ShowWhen condition={this.props.votes[member] !== null && !this.props.votes[member]}>
                       <Icon
                         name='close-circle-outline'
                         size={20}
-                        color='#ff595e'
+                        color={ACCENT_HOT}
                       />
                     </ShowWhen>
                   </View>
@@ -192,9 +192,8 @@ class Mission extends React.Component {
     } else if (this.state.screenState == 'DoingMission') {
       content = (
         <>
-          <Text>
-            You have been selected to complete the mission. Either complete or sabotage the mission.
-          </Text>
+          <Text>You have been selected to complete the mission.</Text>
+          <Text style={{marginTop: 5}}>Complete or sabotage the mission.</Text>
           <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 20}}>
             <TouchableOpacity onPress={() => {
               this.handleDoMission(true);
@@ -204,7 +203,7 @@ class Mission extends React.Component {
             <TouchableOpacity onPress={() => {
               this.handleDoMission(false);
             }}>
-              <Text style={styles.borderButton}>Sabotage</Text>
+              <Text style={[styles.borderButton, {color: ACCENT_HOT, borderColor: ACCENT_HOT}]}>Sabotage</Text>
             </TouchableOpacity>
           </View>
         </>
@@ -214,56 +213,58 @@ class Mission extends React.Component {
         return null;
       }
 
-      let killReport = null;
+      let leakedMessages = null;
       if (this.props.privateChatLeaked) {
-        killReport = (
-          <>
-            <Icon
-              name='warning-outline'
-              size={20}
-              color='yellow'
-              style={{alignSelf: 'center'}}
-            />
-            <Text style={{color: 'yellow'}}>Root of Evil tried to kill a member during the mission, but they failed. FBI intercepted the following messages:</Text>
-          </>
-        );
-      } else if (this.props.killed) {
-        killReport = (
-          <>
-            <Icon
-              name='warning-outline'
-              size={20}
-              color='red'
-              style={{alignSelf: 'center'}}
-            />
-            <Text style={{color: 'red'}}>Root of Evil killed one of us during the mission.</Text>
-          </>
+        leakedMessages = (
+          <FlatList
+            data={this.props.privateChatLeaked}
+            renderItem={({item}) => <TextBubble {...item} handleStyle={{color: 'red'}} textStyle={{color: 'red'}} />}
+            keyExtractor={item => item.id}
+          />
         );
       }
 
-      // if (this.props.missionStatus) {
-      //   if (this.props.privateChatLeaked) {
-      //     statusReport = 'Good job. A Root of Evil operation was thwarted, and they left this evidence.';
-      //   } else {
-      //     statusReport = 'Good job. Mission was completed successfully.';
-      //   }
-      // } else {
-      //   if (this.props.failMission != 0) {
-      //     statusReport = `${this.props.failMission} out of ${this.props.mission.numPeople} sabotaged the mission.`;
-      //   }
-
-      //   if (this.props.privateChatLeaked) {
-      //     statusReport += ' A Root of Evil operation was thwarted, and they left this evidence.';
-      //   }
-      //   if (this.props.killed) {
-      //     statusReport += 'One of us was murdered.';
-      //   } 
-      // }
+      let report = null;
+      if (this.props.killAttempted) {
+        if (this.props.killed) {
+          report = (
+            <>
+              <Icon
+                name='skull-outline'
+                size={20}
+                color='red'
+                style={{alignSelf: 'center'}}
+              />
+              <Text style={{color: 'red'}}>While the mission was going on, Root of Evil killed <Text style={{fontWeight: 'bold'}}>{this.props.killed}</Text>.</Text>
+              <ShowWhen condition={this.props.privateChatLeaked}>
+                <Text>However, FBI intercepted messages that can help track down the killers.</Text>
+                {leakedMessages}
+              </ShowWhen>
+            </>
+          );
+        } else {
+          report = (
+            <>
+              <Icon
+                name='warning-outline'
+                size={20}
+                color='yellow'
+                style={{alignSelf: 'center'}}
+              />
+              <Text style={{color: 'yellow'}}>Root of Evil tried to kill a member during the mission, but they failed. </Text>
+              <ShowWhen condition={this.props.privateChatLeaked}>
+                <Text>FBI intercepted these messages that can help track down the killers.</Text>
+                {leakedMessages}
+              </ShowWhen>
+            </>
+          );
+        }
+      }
 
       content = (
         <>
           <TypingText
-            text='----- Mission status -----'
+            text='----- MISSION STATUS -----'
             onFinish={() => {
               sleep(500)
                 .then(() => {
@@ -276,8 +277,8 @@ class Mission extends React.Component {
             <View style={{
               marginTop: 5
             }}>
-              <Text style={{marginBottom: 10, textAlignVertical: 'bottom'}}>{`${this.props.failMission} ${this.props.failMission == 1 ? 'member' : 'members'} sabotaged the mission.`}</Text>
-              {killReport}
+              <Text style={{marginBottom: 20, textAlignVertical: 'bottom'}}>{`${this.props.failMission} ${this.props.failMission == 1 ? 'member' : 'members'} sabotaged the mission.`}</Text>
+              {report}
               <TouchableOpacity
                 onPress={() => {
                   let newGameState = RootOfEvil.tick(getGameStateFromStore(store));
@@ -323,6 +324,7 @@ function mapStateToProps(state) {
     privateChatLeaked: state.privateChatLeaked,
     completeMission: state.completeMission,
     failMission: state.failMission,
+    killAttempted: state.killAttempted,
     killed: state.killed
   };
 }

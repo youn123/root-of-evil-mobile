@@ -21,9 +21,8 @@ import { sleep, nextId } from '../utils';
 import { Handles } from '../components';
 import RootOfEvil from '../root-of-evil';
 
-import { ShowWhen } from '../hoc';
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {

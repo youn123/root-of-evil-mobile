@@ -38,9 +38,12 @@ export function choose(arr) {
 }
 
 export function obfuscateMessage(message, obfuscateHandle) {
-  let obfuscatedMessage = {...message};
+
+  let obfuscatedMessage;
   if (obfuscateHandle) {
-    obfuscatedMessage.from = '***';
+    obfuscatedMessage = obfuscateHandle(message);
+  } else {
+    obfuscatedMessage = {...message};
   }
 
   let now = Date.now();
@@ -62,5 +65,14 @@ export function obfuscateMessage(message, obfuscateHandle) {
   }
   
   obfuscatedMessage.text = charArray.join('');
+  return obfuscatedMessage;
+}
+
+export function obfuscateHandle(message) {
+  let obfuscatedMessage = {...message};
+  if (obfuscateHandle) {
+    obfuscatedMessage.from = '***';
+  }
+
   return obfuscatedMessage;
 }

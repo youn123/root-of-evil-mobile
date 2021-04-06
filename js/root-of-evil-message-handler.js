@@ -1,23 +1,69 @@
-import RootOfEvil from './root-of-evil';
-import { PrivateChatStore } from './root-of-evil';
+import RootOfEvil, { PrivateChatStore } from './root-of-evil';
 import { getGameStateFromStore } from './reducer';
 import { removeMetadata } from './lobby'; 
-import { obfuscateMessage } from './utils';
+import { obfuscateMessage, obfuscateHandle, choose } from './utils';
 
-export function hostHandleRootOfEvilMessage(messages, lobby, store) {
-  let finalGameState;
+export async function hostHandleRootOfEvilMessage(messages, lobby, store) {
+  let sendFinalGameState;
 
   for (let message of messages) {
+    let messageWithoutMetadata = removeMetadata(message);
+    let { type, to, from } = messageWithoutMetadata;
+  
     // Handle host-specific messages first
-    switch (message.type) {
+    switch (type) {
       case 'NEW_GAME_STATE':
         // I'm host, so I already have the latest game state
         break;
       case 'JOIN':
         let { newGameState, response } = RootOfEvil.apply(getGameStateFromStore(store), message);
-        finalGameState = newGameState;
+        sendFinalGameState = newGameState;
 
         lobby.respondTo(message, response);
+
+        store.dispatch({
+          type: 'SET_GAME_STATE',
+          gameState: sendFinalGameState
+        });
+        break;
+      case 'DO_MISSION':
+        newGameState = RootOfEvil.apply(getGameStateFromStore(store), messageWithoutMetadata);
+
+        if (newGameState.state == 'MissionComplete') {
+          console.log('[hostHandleRootOfEvilMessage] state=MissionComplete');
+
+          if (newGameState.privateChatLeaked) {
+            console.log('[hostHandleRootOfEvilMessage] private chat leaked');
+
+            let fetchLeakedMessages = [];
+  
+            for (let evilMember of store.getState().evilMembers) {
+              fetchLeakedMessages.push(lobby.send({
+                type: 'LEAK_PRIVATE_MESSAGES',
+                to: evilMember
+              }, returnResponse=true));
+            }
+  
+            let responses = await Promise.all(fetchLeakedMessages);
+            responses = responses.filter(response => response.messages.length != 0);
+  
+            if (responses.length == 0) {
+              newGameState.privateChatLeaked = null;
+            } else {
+              toLeak = responses[choose(responses)].messages;
+              newGameState.privateChatLeaked = toLeak.map(message => obfuscateHandle(message));
+              console.log('toLeak:');
+              console.log(toLeak);
+            }
+          }
+
+          sendFinalGameState = newGameState;
+        }
+
+        store.dispatch({
+          type: 'SET_GAME_STATE',
+          gameState: newGameState
+        });
         break;
       default:
         clientHandleRootOfEvilMessage([message], lobby, store);
@@ -25,16 +71,11 @@ export function hostHandleRootOfEvilMessage(messages, lobby, store) {
     }
   }
 
-  if (finalGameState) {
+  if (sendFinalGameState) {
     lobby.send({
       type: 'NEW_GAME_STATE',
       to: '__everyone',
-      ...finalGameState
-    });
-
-    store.dispatch({
-      type: 'SET_GAME_STATE',
-      gameState: finalGameState
+      ...sendFinalGameState
     });
   }
 }
@@ -56,9 +97,15 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
         break;
       case 'MESSAGE':
         if (to == '__everyone') {
+          console.log(messageWithoutMetadata);
+
+          if (messageWithoutMetadata.fromTeamLead) {
+            messageWithoutMetadata.from = messageWithoutMetadata.from + ' [Lead]';
+          }
+
           store.dispatch({
             type: 'ADD_MESSAGE',
-            message
+            message: messageWithoutMetadata
           });
         } else if (to === store.getState().privateChatId) {
           if (store.getState().role == RootOfEvil.Roles.FBI) {
@@ -205,23 +252,25 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
       case 'KILL':
         newGameState = RootOfEvil.apply(getGameStateFromStore(store), messageWithoutMetadata);
 
-        console.log('Message:');
-        console.log(messageWithoutMetadata);
-        console.log(`Handler KILL:`);
-        console.log(newGameState);
-
         store.dispatch({
           type: 'SET_GAME_STATE',
           gameState: newGameState
         });
         break;
-      case 'DO_MISSION':
-        newGameState = RootOfEvil.apply(getGameStateFromStore(store), messageWithoutMetadata);
+      case 'LEAK_PRIVATE_MESSAGES':
+        if (to != store.getState().handle) {
+          break;
+        }
 
-        store.dispatch({
-          type: 'SET_GAME_STATE',
-          gameState: newGameState
+        console.log(`[${store.getState().handle} clientHandleRootOfEvilMessage] received LEAK_PRIVATE_MESSAGES`);
+        let leakedMessages = PrivateChatStore.leak();
+        console.log('leakedMessages:');
+        console.log(leakedMessages);
+
+        lobby.respondTo(message, {
+          messages: leakedMessages
         });
+
         break;
     }
   }

@@ -4,8 +4,7 @@ import {
   StyleSheet,
   View,
   Text,
-  TouchableOpacity,
-  ActivityIndicator
+  TouchableOpacity
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
@@ -14,10 +13,10 @@ import { ShowWhen } from '../hoc';
 import { SERVER_ADDR } from '../../env';
 import RootOfEvil from '../root-of-evil';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
-const PRIMARY = '#0D0628';
+import { PRIMARY, SECONDARY, TERTIARY, ACCENT } from '../settings';
 
 const styles = StyleSheet.create({
   container: {
@@ -42,7 +41,6 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   nextButton: {
-    backgroundColor: 'red',
     borderRadius: 40 / 2
   }
 });
@@ -94,7 +92,7 @@ class New extends React.Component {
           <TouchableOpacity
             style={[
               styles.nextButton,
-              {backgroundColor: this.nextButtonDisabled() ? 'grey' : 'red'}
+              {backgroundColor: this.nextButtonDisabled() ? SECONDARY : ACCENT}
             ]}
             disabled={this.nextButtonDisabled()}
             onPress={this.handleNext}
@@ -102,7 +100,7 @@ class New extends React.Component {
             <Icon
               name='chevron-forward-outline'
               size={40}
-              color='white'
+              color={PRIMARY}
             />
           </TouchableOpacity>
         </View>
