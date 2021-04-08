@@ -24,7 +24,9 @@ const INITIAL_STATE = {
   missionStatus: null,
   killAttempted: null,
   killed: null,
-  privateChatLeaked: null
+  privateChatLeaked: null,
+  // Player state embedded within game state
+  alive: true
 };
 
 export default function reducer(state = INITIAL_STATE, action) {
@@ -49,9 +51,15 @@ export default function reducer(state = INITIAL_STATE, action) {
         appState: action.appState
       };
     case 'SET_GAME_STATE':
+      let myState = action.gameState.players.find(player => player.handle == state.handle);
+
+      myState = {...myState};
+      delete myState.handle;
+
       return {
         ...state,
-        ...action.gameState
+        ...action.gameState,
+        ...myState
       };
     case 'SET_HANDLE':
       return {
@@ -124,6 +132,7 @@ export function getGameStateFromStore(store) {
     privateMessages,
     abilityInCooldown,
     numHacksRemaining,
+    alive,
     ...gameState
   } = store.getState();
 

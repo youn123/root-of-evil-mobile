@@ -5,6 +5,8 @@ export default function Handles(props) {
   let style = props.nameColor ? {color: props.nameColor} : null;
   let texts = [];
 
+  style = [style, props.handleStyle];
+
   if (props.names.length == 0) {
     return '';
   }

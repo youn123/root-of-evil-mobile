@@ -15,7 +15,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY, TERTIARY, ACCENT, ACCENT_HOT } from '../settings';
+import { PRIMARY, SECONDARY, TERTIARY, ACCENT, ACCENT_HOT, ACCENT_WARM } from '../settings';
 
 import { sleep } from '../utils';
 import { RetroLoadingIndicator, TextBubble } from '../components';
@@ -26,6 +26,8 @@ import store from '../store';
 import { ShowWhen } from '../hoc';
 import Lobby from '../lobby';
 // import Lobby from '../mocks/lobby';
+
+const { height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
@@ -82,7 +84,7 @@ class TypingText extends React.Component {
   }
 
   render() {
-    return <Text>{this.props.text.substring(0, this.state.i)}</Text>;
+    return <Text style={this.props.textStyle}>{this.props.text.substring(0, this.state.i)}</Text>;
   } 
 
 } 
@@ -218,7 +220,7 @@ class Mission extends React.Component {
         leakedMessages = (
           <FlatList
             data={this.props.privateChatLeaked}
-            renderItem={({item}) => <TextBubble {...item} handleStyle={{color: 'red'}} textStyle={{color: 'red'}} />}
+            renderItem={({item}) => <TextBubble {...item} handleStyle={{color: 'red'}} textStyle={{color: 'red'}} bubbleStyle={{backgroundColor: 'transparent', marginVertical: 5}} />}
             keyExtractor={item => item.id}
           />
         );
@@ -237,8 +239,10 @@ class Mission extends React.Component {
               />
               <Text style={{color: 'red'}}>While the mission was going on, Root of Evil killed <Text style={{fontWeight: 'bold'}}>{this.props.killed}</Text>.</Text>
               <ShowWhen condition={this.props.privateChatLeaked}>
-                <Text>However, FBI intercepted messages that can help track down the killers.</Text>
-                {leakedMessages}
+                <Text style={{marginVertical: 5}}>FBI intercepted these private messages between Root of Evil members:</Text>
+                <View style={{height: height * 0.3, backgroundColor: SECONDARY, borderRadius: 10}}>
+                  {leakedMessages}
+                </View>
               </ShowWhen>
             </>
           );
@@ -248,13 +252,15 @@ class Mission extends React.Component {
               <Icon
                 name='warning-outline'
                 size={20}
-                color='yellow'
+                color={ACCENT_WARM}
                 style={{alignSelf: 'center'}}
               />
-              <Text style={{color: 'yellow'}}>Root of Evil tried to kill a member during the mission, but they failed. </Text>
+              <Text style={{color: ACCENT_WARM}}>Root of Evil tried to kill a member during the mission, but they failed.</Text>
               <ShowWhen condition={this.props.privateChatLeaked}>
-                <Text>FBI intercepted these messages that can help track down the killers.</Text>
-                {leakedMessages}
+                <Text style={{marginVertical: 5}}>FBI intercepted these private messages between Root of Evil members:</Text>
+                <View style={{height: height * 0.3, backgroundColor: SECONDARY, borderRadius: 10}}>
+                  {leakedMessages}
+                </View>
               </ShowWhen>
             </>
           );
@@ -273,7 +279,7 @@ class Mission extends React.Component {
             }}
           />
           <ShowWhen condition={this.state.showResult}>
-            {this.props.missionStatus ? <Text style={{color: '#0cf574', fontSize: 24}}>Success</Text> : <Text style={{color: 'red', fontSize: 24}}>Failed</Text>}
+            {this.props.missionStatus ? <Text style={{color: ACCENT, fontSize: 24}}>Success</Text> : <Text style={{color: 'red', fontSize: 24}}>Failed</Text>}
             <View style={{
               marginTop: 5
             }}>

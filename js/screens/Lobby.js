@@ -15,7 +15,7 @@ import { ShowWhen } from '../hoc';
 import { getCurrentLobby } from '../lobby';
 // import { getCurrentLobby } from '../mocks/lobby';
 import { hostHandleRootOfEvilMessage } from '../root-of-evil-message-handler';
-import { PRIMARY, SECONDARY, ACCENT } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT_HOT } from '../settings';
 
 const styles = StyleSheet.create({
   container: {
@@ -75,7 +75,7 @@ class Lobby extends React.Component {
           </ShowWhen>
           <ShowWhen condition={status == 'Ready'}>
             <TouchableOpacity onPress={this.handleStart}>
-              <Text style={[styles.nextButton, {backgroundColor: ACCENT, color: PRIMARY}]}>Start!</Text>
+              <Text style={[styles.nextButton, {backgroundColor: ACCENT_HOT, color: PRIMARY}]}>Start!</Text>
             </TouchableOpacity>
           </ShowWhen>
         </View>
@@ -87,7 +87,7 @@ class Lobby extends React.Component {
             <Text>{this.props.players.length} people have joined.</Text>
           </ShowWhen>
           <ScrollView contentContainerStyle={{width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-evenly', marginTop: 10}}>
-            {this.props.players.map(player => <Text style={{marginHorizontal: 10, fontSize: 18, marginTop: 10}} key={player}>{player}</Text>)}
+            {this.props.players.map(player => <Text style={{marginHorizontal: 10, fontSize: 18, marginTop: 10}} key={player.handle}>{player.handle}</Text>)}
           </ScrollView>
         </View>
       </SafeAreaView>

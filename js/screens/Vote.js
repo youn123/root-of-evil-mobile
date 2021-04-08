@@ -15,7 +15,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT_WARM, ACCENT_HOT } from '../settings';
 
 import { sleep, nextId } from '../utils';
 import { Handles } from '../components';
@@ -100,7 +100,7 @@ class Vote extends React.Component {
           flex: 1
         }}>
           <Text>
-            <Handles names={[this.props.teamLead]} nameColor='#ffca3a' /> has proposed the following team: <Handles names={[...this.props.proposedTeam]} nameColor = '#ffca3a' />.
+            <Handles names={[this.props.teamLead.handle]} handleStyle={{fontWeight: 'bold'}} /> has proposed the following team: <Handles names={[...this.props.proposedTeam]} handleStyle={{fontWeight: 'bold'}} />.
           </Text>
           <Text style={{marginTop: 5}}>Do you accept?</Text>
           <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 20}}>
@@ -112,7 +112,7 @@ class Vote extends React.Component {
             <TouchableOpacity onPress={() => {
               this.handleVote(false);
             }}>
-              <Text style={styles.borderButton}>Reject</Text>
+              <Text style={[styles.borderButton, {color: ACCENT_HOT, borderColor: ACCENT_HOT}]}>Reject</Text>
             </TouchableOpacity>
           </View>
         </View>

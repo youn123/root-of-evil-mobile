@@ -40,7 +40,7 @@ export async function hostHandleRootOfEvilMessage(messages, lobby, store) {
             for (let evilMember of store.getState().evilMembers) {
               fetchLeakedMessages.push(lobby.send({
                 type: 'LEAK_PRIVATE_MESSAGES',
-                to: evilMember
+                to: evilMember.handle
               }, returnResponse=true));
             }
   
@@ -52,8 +52,6 @@ export async function hostHandleRootOfEvilMessage(messages, lobby, store) {
             } else {
               toLeak = responses[choose(responses)].messages;
               newGameState.privateChatLeaked = toLeak.map(message => obfuscateHandle(message));
-              console.log('toLeak:');
-              console.log(toLeak);
             }
           }
 
@@ -63,6 +61,15 @@ export async function hostHandleRootOfEvilMessage(messages, lobby, store) {
         store.dispatch({
           type: 'SET_GAME_STATE',
           gameState: newGameState
+        });
+        break;
+      case 'SET_KILL_CONTRACT':
+        newGameState = {...getGameStateFromStore(store)};
+        newGameState.killContracts = [...newGameState.killContracts, messageWithoutMetadata.handle];
+
+        store.dispatch({
+          type: 'SET_GAME_STATE',
+          gameState: newGameState 
         });
         break;
       default:
@@ -199,8 +206,6 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
           break;
         }
 
-        console.log(`${store.getState().handle} Received HACK from ${from}`);
-
         if (store.getState().role != RootOfEvil.Roles.RootOfEvil) {
           lobby.respondTo(message, {
             result: 'Rejected',
@@ -216,6 +221,11 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
             chatRoomId: messages[0].to,
             messages,
             from: store.getState().handle
+          });
+          // Set a kill contract
+          lobby.send({
+            type: 'SET_KILL_CONTRACT',
+            handle: from
           });
         } else {
           lobby.respondTo(message, {
@@ -264,8 +274,6 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
 
         console.log(`[${store.getState().handle} clientHandleRootOfEvilMessage] received LEAK_PRIVATE_MESSAGES`);
         let leakedMessages = PrivateChatStore.leak();
-        console.log('leakedMessages:');
-        console.log(leakedMessages);
 
         lobby.respondTo(message, {
           messages: leakedMessages

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 
-import { TERTIARY, ACCENT } from '../settings';
+import { TERTIARY, ACCENT, ACCENT_WARM } from '../settings';
 
 const styles = StyleSheet.create({
   bubble: {
@@ -18,7 +18,10 @@ const styles = StyleSheet.create({
   },
   announcementHigh: {
     fontStyle: 'italic',
-    color: ACCENT
+    color: ACCENT_WARM
+  },
+  ghostly: {
+    color: TERTIARY
   }
 });
 
@@ -40,9 +43,9 @@ export default function Bubble(props) {
   }
 
   return (
-    <View style={styles.bubble} key={props.id}>
-      <Text style={[styles.handle, props.handleStyle]}>{props.from}</Text>
-      <Text style={props.textStyle}>{props.text}</Text>
+    <View style={[styles.bubble, props.bubbleStyle]} key={props.id}>
+      <Text style={[styles.handle, props.handleStyle, props.ghostly && styles.ghostly]}>{props.from}</Text>
+      <Text style={[props.textStyle, props.ghostly && styles.ghostly]}>{props.text}</Text>
     </View>
   );
 }

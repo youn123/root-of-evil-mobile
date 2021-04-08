@@ -70,7 +70,7 @@ function join(gameState, joinData) {
   
   return {
     newGameState: {
-      players: [...gameState.players, joinData.handle],
+      players: [...gameState.players, {handle: joinData.handle, alive: true, role: null}],
     },
     response: {
       result: 'Accepted'
@@ -83,7 +83,7 @@ function vote(gameState, action) {
   // First vote
   if (Object.keys(votesCopy).length == 0) {
     for (let player of gameState.players) {
-      votesCopy[player] = null;
+      votesCopy[player.handle] = null;
     }
   }
 
@@ -130,8 +130,8 @@ function countVotes(gameState) {
 
   for (let evilMember of Object.keys(gameState.killVotes)) {
     numKillVotes++;
-    if (gameState.killVotes[evilMember] && gameState.killVotes[evilMember] != '__None') {
-      victim = gameState.killVotes[evilMember];
+    if (gameState.killVotes[evilMember.handle] && gameState.killVotes[evilMember.handle] != '__None') {
+      victim = gameState.killVotes[evilMember.handle];
 
       if (!victimsToVotes[victim]) {
         victimsToVotes[victim] = 1;
@@ -141,14 +141,41 @@ function countVotes(gameState) {
     }
   }
 
-  if ((numVotedYes + numVotedNo) == gameState.players.length && numKillVotes == gameState.evilMembers.length) {
-    let victimSuccessfullyKilled = victim && victimsToVotes[victim] == gameState.evilMembers.length;
+  let survivingMembers = gameState.players.filter(player => player.alive);
+  let survivingEvilMembers = gameState.evilMembers.filter(player => player.alive);
+
+  if ((numVotedYes + numVotedNo) == survivingMembers.length && numKillVotes == survivingEvilMembers.length) {
+    let victimSuccessfullyKilled = victim && victimsToVotes[victim] == survivingEvilMembers.length;
+
+    if (victimSuccessfullyKilled) {
+      newGameState.players = gameState.players.map(player => {
+        if (player.handle == victim) {
+          return {
+            ...player,
+            alive: false
+          };
+        }
+
+        return player;
+      });
+
+      newGameState.evilMembers = gameState.evilMembers.map(player => {
+        if (player.handle == victim) {
+          return {
+            ...player,
+            alive: false
+          };
+        }
+
+        return player;
+      });
+    }
 
     newGameState.killAttempted = victim;
     newGameState.killed = victimSuccessfullyKilled ? victim : null;
     newGameState.privateChatLeaked = newGameState.killAttempted && (!victimSuccessfullyKilled || !gameState.killContracts.includes(victim));
 
-    if (numVotedYes >= gameState.players.length / 2.0) {
+    if (numVotedYes >= survivingMembers.length / 2.0) {
       newGameState.state = 'MissionInProgress';
     } else {
       newGameState.state = 'MissionAborted';
@@ -216,9 +243,20 @@ function tick(gameState) {
   } else if (rootOfEvilWonMissions >= 3) {
     newGameState.state = 'RootOfEvilWon';
     return newGameState;
+  } else {
+    let survivingFBIAgents = gameState.players.filter(player => player.alive && player.role != Roles.RootOfEvil);
+    let survivingEvilMembers = gameState.evilMembers.filter(player => player.alive);
+
+    // If somehow population parity is reached
+    if (survivingEvilMembers == survivingFBIAgents) {
+      newGameState.state = 'RootOfEvilWon';
+      return newGameState;
+    }
   }
 
-  newGameState.teamLeadIndex = (newGameState.teamLeadIndex + 1) % gameState.players.length;
+  do {
+    newGameState.teamLeadIndex = (newGameState.teamLeadIndex + 1) % gameState.players.length;
+  } while (!newGameState.players[newGameState.teamLeadIndex].alive);
 
   newGameState.proposedTeam = null;
   newGameState.votes = {};
@@ -254,15 +292,33 @@ function start(gameState) {
     numEvilMembers = 5;
   }
 
-  let { chosen } = chooseNoReplacement(gameState.players, numEvilMembers);
+  let { chosen } = chooseNoReplacement(gameState.players.map(player => player.handle), numEvilMembers);
   let teamLeadIndex = choose(gameState.players);
 
   let newGameState = {
     ...gameState,
-    evilMembers: chosen,
     state: 'TeamBuilding',
     teamLeadIndex
   };
+
+  newGameState.players = gameState.players.map(player => {
+    if (chosen.includes(player.handle)) {
+      return {
+        ...player,
+        role: Roles.RootOfEvil
+      };
+    }
+
+    return player;
+  });
+
+  newGameState.evilMembers = chosen.map(handle => {
+    return {
+      handle,
+      alive: true,
+      role: Roles.RootOfEvil
+    };
+  });
 
   return {
     newGameState,
@@ -275,15 +331,39 @@ function start(gameState) {
 
 function startWithConfig(gameState, config) {
   let numEvilMembers = config.numEvilMembers;
-  let { chosen } = chooseNoReplacement(gameState.players, numEvilMembers);
+
+  let { chosen } = chooseNoReplacement(gameState.players.map(player => player.handle), numEvilMembers);
   let teamLeadIndex = choose(gameState.players);
 
   let newGameState = {
     ...gameState,
-    evilMembers: chosen,
     state: 'TeamBuilding',
     teamLeadIndex
   };
+
+  newGameState.players = gameState.players.map(player => {
+    if (chosen.includes(player.handle)) {
+      return {
+        ...player,
+        role: Roles.RootOfEvil
+      };
+    } else {
+      return {
+        ...player,
+        role: Roles.FBI
+      }
+    }
+
+    return player;
+  });
+
+  newGameState.evilMembers = chosen.map(handle => {
+    return {
+      handle,
+      alive: true,
+      role: Roles.RootOfEvil
+    };
+  });
 
   return {
     newGameState,

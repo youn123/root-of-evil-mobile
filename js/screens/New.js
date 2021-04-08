@@ -16,7 +16,7 @@ import RootOfEvil from '../root-of-evil';
 import Lobby from '../lobby';
 // import Lobby from '../mocks/lobby';
 
-import { PRIMARY, SECONDARY, TERTIARY, ACCENT } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT_HOT } from '../settings';
 
 const styles = StyleSheet.create({
   container: {
@@ -92,7 +92,7 @@ class New extends React.Component {
           <TouchableOpacity
             style={[
               styles.nextButton,
-              {backgroundColor: this.nextButtonDisabled() ? SECONDARY : ACCENT}
+              {backgroundColor: this.nextButtonDisabled() ? SECONDARY : ACCENT_HOT}
             ]}
             disabled={this.nextButtonDisabled()}
             onPress={this.handleNext}

@@ -192,7 +192,6 @@ class Join extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    members: state.members,
     isHost: state.isHost
   };
 }

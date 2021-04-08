@@ -79,7 +79,7 @@ class RoleAssignment extends React.Component {
             from: '__announcement_high',
             to: '__everyone',
             id: `${this.props.handle}-${nextId()}`,
-            text: `Team lead for mission ${this.props.currentMissionIndex} is ${this.props.teamLead}. Choose ${this.props.currentMission.numPeople} people to go on the mission.`
+            text: `Team lead for mission ${this.props.currentMissionIndex} is ${this.props.teamLead.handle}. Choose ${this.props.currentMission.numPeople} people to go on the mission.`
           });
         });
     }
@@ -89,13 +89,7 @@ class RoleAssignment extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.evilMembers != this.props.evilMembers) {
-      if (this.props.evilMembers.includes(this.props.handle)) {
-        this.props.setRole(RootOfEvil.Roles.RootOfEvil);
-      } else {
-        this.props.setRole(RootOfEvil.Roles.FBI);
-      }
-
+    if (prevProps.role != this.props.role) {
       Animated.sequence([
         Animated.timing(this.animateLogo, {
           toValue: 2,
@@ -171,7 +165,7 @@ class RoleAssignment extends React.Component {
                 You are a <Text style={{color: 'red'}}>Root of Evil</Text> operative.
               </Text>
               <Text style={{marginTop: 20}}>
-                Your job is to sabotage the FBI from within. Work closely with <Handles names={this.props.evilMembers.filter(name => name != this.props.handle)} nameColor='red' />.
+                Your job is to sabotage the FBI from within. Work closely with <Handles names={this.props.evilMembers.filter(player => player.handle != this.props.handle).map(player => player.handle)} nameColor='red' />.
               </Text>
               <TouchableOpacity
                 style={{alignSelf: 'center', marginTop: 20}}
@@ -228,7 +222,6 @@ function mapStateToProps(state) {
     currentMissionIndex: state.currentMissionIndex,
     currentMission: state.missions[state.currentMissionIndex],
     teamLead: state.players[state.teamLeadIndex],
-    players: state.players
   };
 }
 

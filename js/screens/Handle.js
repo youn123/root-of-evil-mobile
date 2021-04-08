@@ -20,7 +20,7 @@ import RootOfEvil from '../root-of-evil';
 import Lobby from '../lobby';
 // import Lobby from '../mocks/lobby';
 import { clientHandleRootOfEvilMessage } from '../root-of-evil-message-handler';
-import { PRIMARY, SECONDARY, ACCENT } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT, ACCENT_HOT } from '../settings';
 
 const styles = StyleSheet.create({
   container: {
@@ -108,7 +108,7 @@ class Handle extends React.Component {
       return Lobby.getCurrentLobby().send({
         type: 'JOIN',
         handle: input,
-      }, true)
+      }, returnResponse=true)
         .then(res => {
           if (res.result != 'Accepted') {
             throw new Error(res.message);
@@ -174,7 +174,7 @@ class Handle extends React.Component {
           <TouchableOpacity
             style={[
               styles.nextButton,
-              {backgroundColor: this.nextButtonDisabled() ? SECONDARY : ACCENT}
+              {backgroundColor: this.nextButtonDisabled() ? SECONDARY : ACCENT_HOT}
             ]}
             disabled={this.nextButtonDisabled()}
             onPress={this.handleNext}
@@ -210,7 +210,7 @@ class Handle extends React.Component {
           </View>
         </View>
         <ScrollView contentContainerStyle={{width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-evenly', marginTop: 10}}>
-          {this.props.players.map(player => <Text style={{marginHorizontal: 10, fontSize: 18, marginTop: 10}} key={player}>{player}</Text>)}
+          {this.props.players.map(player => <Text style={{marginHorizontal: 10, fontSize: 18, marginTop: 10}} key={player.handle}>{player.handle}</Text>)}
         </ScrollView>
       </SafeAreaView>
     );
@@ -219,7 +219,6 @@ class Handle extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    members: state.members,
     isHost: state.isHost,
     lobbyCode: state.lobbyCode,
     players: state.players

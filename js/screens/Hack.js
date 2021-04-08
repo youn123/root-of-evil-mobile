@@ -13,7 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT_HOT, TERTIARY } from '../settings';
 
 import { TextBubble, RetroLoadingIndicator } from '../components';
 import store from '../store';
@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
   },
   chatHeader: {
     paddingRight: 10,
+    paddingVertical: 5,
     backgroundColor: SECONDARY,
     width: '100%',
     flexDirection: 'row',
@@ -157,6 +158,10 @@ class Hack extends React.Component {
     this.props.clearPrivateChat();
   }
 
+  hackButtonDisabled = () => {
+    return !this.state.selected || this.state.selected.length == 0;
+  }
+
   setStateAsync = newState => {
     return new Promise((resolve, _) => {
       this.setState(newState, resolve);
@@ -189,22 +194,22 @@ class Hack extends React.Component {
           }}>
             <Text style={{
               marginBottom: 5
-            }}>Suspicious of Evil activity? Select who you want to hack.</Text>
+            }}>Suspicious of someone? Select a player to hack.</Text>
           </View>
           <View>
             <ScrollView contentContainerStyle={{
               marginTop: 20,
               paddingHorizontal: 20
             }}>
-              {this.props.players.filter(member => member != this.props.handle).map(member => {
+              {this.props.players.filter(member => member.handle != this.props.handle).map(member => {
                 return (
                   <TouchableOpacity
                     onPress={() => {
-                      this.handleSelect(member);
+                      this.handleSelect(member.handle);
                     }}
                   >
-                    <View style={[styles.selectionOption, {backgroundColor: this.state.selected == member? '#485696' : SECONDARY}]}>
-                      <Text>{member}</Text>
+                    <View style={[styles.selectionOption, {backgroundColor: this.state.selected == member.handle ? ACCENT_HOT : SECONDARY}]}>
+                      <Text>{member.handle}</Text>
                     </View>
                   </TouchableOpacity>
                 );
@@ -214,8 +219,9 @@ class Hack extends React.Component {
           <TouchableOpacity
             style={{alignSelf: 'center', marginTop: 20}}
             onPress={this.handleHack}
+            disabled={this.hackButtonDisabled()}
           >
-            <Text style={styles.borderButton}>Hack</Text>
+            <Text style={[styles.borderButton, {color: this.hackButtonDisabled() ? SECONDARY : 'white', borderColor: this.hackButtonDisabled() ? SECONDARY : 'white'}]}>Hack</Text>
           </TouchableOpacity>
         </>
       );
@@ -270,7 +276,7 @@ class Hack extends React.Component {
                 <Icon
                   name='chevron-back-outline'
                   size={40}
-                  color='#485696'
+                  color='white'
                 /> 
               </TouchableOpacity>
             </View>
@@ -287,7 +293,7 @@ class Hack extends React.Component {
             <Icon
               name='chevron-back-outline'
               size={30}
-              color='#485696'
+              color='white'
             /> 
           </TouchableOpacity>
           <TouchableOpacity onPress={this.handleDisconnect}>
@@ -322,10 +328,10 @@ class Hack extends React.Component {
           <Icon
             name='glasses-outline'
             size={30}
-            color='#485696'
+            color={TERTIARY}
             style={{marginRight: 5}}
           /> 
-          <Text style={{color: '#485696', marginLeft: 5, fontSize: 16}}>READ ONLY</Text>
+          <Text style={{color: TERTIARY, marginLeft: 5, fontSize: 16}}>READ ONLY</Text>
         </View>
       </SafeAreaView>
     );

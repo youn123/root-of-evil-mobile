@@ -10,7 +10,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT_HOT } from '../settings';
 
 import Lobby from '../lobby';
 // import Lobby from '../mocks/lobby';
@@ -87,6 +87,7 @@ class Kill extends React.Component {
           <Text style={{
             marginBottom: 5
           }}>Choose a member to kill.</Text>
+          <Text>If you are not going to kill anyone, continue without making a selection.</Text>
         </View>
         <View>
           <ScrollView contentContainerStyle={{
@@ -97,11 +98,11 @@ class Kill extends React.Component {
               return (
                 <TouchableOpacity
                   onPress={() => {
-                    this.handleSelect(member);
+                    this.handleSelect(member.handle);
                   }}
                 >
-                  <View style={[styles.selectionOption, {backgroundColor: this.state.selected == member ? '#485696' : SECONDARY}]}>
-                    <Text>{member}</Text>
+                  <View style={[styles.selectionOption, {backgroundColor: this.state.selected == member.handle ? ACCENT_HOT : SECONDARY}]}>
+                    <Text>{member.handle}</Text>
                   </View>
                 </TouchableOpacity>
               );

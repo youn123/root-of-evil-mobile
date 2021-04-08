@@ -14,7 +14,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT_WARM, ACCENT_HOT, TERTIARY } from '../settings';
 
 import { sleep, nextId } from '../utils';
 import { TextBubble, RetroLoadingIndicator, Handles } from '../components';
@@ -23,8 +23,6 @@ import { PrivateChatStore } from '../root-of-evil';
 import { ShowWhen } from '../hoc';
 import Lobby from '../lobby';
 // import Lobby from '../mocks/lobby';
-
-const fakeEvilMembers = ['qin', 'youn', 'steve'];
 
 const styles = StyleSheet.create({
   container: {
@@ -42,6 +40,7 @@ const styles = StyleSheet.create({
   },
   chatHeader: {
     paddingRight: 10,
+    paddingVertical: 5,
     backgroundColor: SECONDARY,
     width: '100%',
     flexDirection: 'row',
@@ -122,7 +121,9 @@ class PrivateChat extends React.Component {
       this.setState({screenState: 'Connected'});
     }
 
-    if (prevProps.privateChatLifeCycleState.type == 'Connected' && this.props.privateChatLifeCycleState.type == 'None' && prevState.screenState != 'Left')
+    if (prevProps.privateChatLifeCycleState.type == 'Connected' && this.props.privateChatLifeCycleState.type == 'None' && prevState.screenState != 'Left') {
+      this.setState({screenState: 'Terminated'});
+    }
 
     if (this.state.endReached && prevProps.messages != this.props.messages) {
       this.flatListRef && this.flatListRef.scrollToEnd();
@@ -265,6 +266,10 @@ class PrivateChat extends React.Component {
       });
   }
 
+  connectButtonDisabled = () => {
+    return Object.keys(this.state.selected).length == 0;
+  }
+
   setStateAsync = newState => {
     return new Promise((resolve, _) => {
       this.setState(newState, resolve);
@@ -295,24 +300,29 @@ class PrivateChat extends React.Component {
             marginTop: 20,
             paddingHorizontal: 20
           }}>
-            <Text style={{
-              marginBottom: 5
-            }}>Select who you want to talk to. You can select more than one person to form a group chat.</Text>
+            <Text
+              style={{
+                marginBottom: 5
+              }}
+            >
+              Select who you want to connect to.
+            </Text>
+            <Text>You can select more than one person to form a group chat.</Text>
           </View>
           <View>
             <ScrollView contentContainerStyle={{
               marginTop: 20,
               paddingHorizontal: 20
             }}>
-              {this.props.evilMembers.filter(member => member != this.props.handle).map(member => {
+              {this.props.evilMembers.filter(member => member.handle != this.props.handle).map(member => {
                 return (
                   <TouchableOpacity
                     onPress={() => {
-                      this.handleSelect(member);
+                      this.handleSelect(member.handle);
                     }}
                   >
-                    <View style={[styles.selectionOption, {backgroundColor: this.state.selected.hasOwnProperty(member) ? '#485696' : SECONDARY}]}>
-                      <Text>{member}</Text>
+                    <View style={[styles.selectionOption, {backgroundColor: this.state.selected.hasOwnProperty(member.handle) ? ACCENT_HOT : SECONDARY}]}>
+                      <Text>{member.handle}</Text>
                     </View>
                   </TouchableOpacity>
                 );
@@ -322,8 +332,9 @@ class PrivateChat extends React.Component {
           <TouchableOpacity
             style={{alignSelf: 'center', marginTop: 20}}
             onPress={this.handleConnect}
+            disabled={this.connectButtonDisabled()}
           >
-            <Text style={styles.borderButton}>Connect</Text>
+            <Text style={[styles.borderButton, this.connectButtonDisabled() ? {color: SECONDARY, borderColor: SECONDARY} : {}]}>Connect</Text>
           </TouchableOpacity>
         </>
       );
@@ -348,7 +359,7 @@ class PrivateChat extends React.Component {
             marginTop: 20,
             flex: 1
           }}>
-            <Text>Chat has been terminated.</Text>
+            <Text>Chat has been terminated by host.</Text>
           </View>
         </>
       );
@@ -373,7 +384,7 @@ class PrivateChat extends React.Component {
             flex: 1
           }}>
             <Text>
-              <Handles names={[this.props.privateChatLifeCycleState.from]} nameColor='red' /> has requested a private connection with <Handles names={[...this.props.privateChatLifeCycleState.others, 'you']} nameColor = 'red' />.
+              <Handles names={[this.props.privateChatLifeCycleState.from]} nameColor={ACCENT_HOT} /> has requested a private connection with <Handles names={[...this.props.privateChatLifeCycleState.others, 'you']} nameColor = {ACCENT_HOT} />.
             </Text>
             <View style={{flexDirection: 'row', justifyContent: 'space-around', marginTop: 20}}>
             <TouchableOpacity
@@ -438,7 +449,7 @@ class PrivateChat extends React.Component {
             <Icon
               name='chevron-back-outline'
               size={30}
-              color='#485696'
+              color='white'
             /> 
           </TouchableOpacity>
           <ShowWhen condition={this.props.privateChatLifeCycleState.hasTerminatePrivilege}>
@@ -493,17 +504,20 @@ class PrivateChat extends React.Component {
             onChangeText={text => {
               this.setState({text});
             }}
-            placeholder='An FBI agent could be snooping.'
-            placeholderTextColor='#485696'
+            placeholder='An FBI agent may be watching.'
+            placeholderTextColor={TERTIARY}
             multiline
             maxLength={140}
             value={this.state.text}
           />
-          <TouchableOpacity onPress={this.handleSendMessage}>
+          <TouchableOpacity
+            onPress={this.handleSendMessage}
+            disabled={this.state.text.length == 0}
+          >
             <Icon
               name='send-outline'
               size={20}
-              color='white'
+              color={this.state.text.length != 0 ? 'white' : TERTIARY}
             />
           </TouchableOpacity>
         </View>
@@ -515,7 +529,6 @@ class PrivateChat extends React.Component {
 function mapStateToProps(state) {
   return {
     isHost: state.isHost,
-    players: state.players,
     messages: state.privateMessages,
     handle: state.handle,
     evilMembers: state.evilMembers,

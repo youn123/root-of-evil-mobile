@@ -13,7 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY, TERTIARY, ACCENT_WARM, ACCENT_HOT, ACCENT_COOL } from '../settings';
+import { PRIMARY, SECONDARY, TERTIARY, ACCENT, ACCENT_WARM, ACCENT_HOT, ACCENT_COOL } from '../settings';
 
 import { nextId } from '../utils';
 import TextBubble from '../components/TextBubble';
@@ -137,7 +137,7 @@ function MissionIndicator(props) {
       </View>
     );
   } else if (props.status) {
-    return <Icon name='star' color={ACCENT_COOL} size={20} style={{marginBottom: 4, marginRight: 5}} />;
+    return <Icon name='checkmark-circle' color={ACCENT} size={20} style={{marginRight: 5}} />;
   } else {
     return <Icon name='skull' color={ACCENT_HOT} size={20} style={{marginRight: 5}} />;
   }
@@ -225,7 +225,7 @@ class MainChat extends React.Component {
       }
     }
     
-    if (this.props.gameState == 'Vote' && prevProps.gameState != this.props.gameState && this.props.handle != this.props.teamLead) {
+    if (this.props.gameState == 'Vote' && prevProps.gameState != this.props.gameState && this.props.handle != this.props.teamLead.handle) {
       this.props.navigation.navigate('Vote');
     }
   }
@@ -233,10 +233,10 @@ class MainChat extends React.Component {
   handleBackButton = () => true;
 
   handleKeyboardDidShow = event => {
-    const { height: widnowHeight } = Dimensions.get('window');
+    const { height: windowHeight } = Dimensions.get('window');
 
-    console.log(`screen height: ${widnowHeight}`);
-    console.log(`keyboard height: ${event.endCoordinates.height}`);
+    // console.log(`screen height: ${widnowHeight}`);
+    // console.log(`keyboard height: ${event.endCoordinates.height}`);
 
     this.flatListRef.scrollToOffset({
       offset: this.state.scrollOffset + event.endCoordinates.height
@@ -253,7 +253,8 @@ class MainChat extends React.Component {
       from: this.props.handle,
       to: '__everyone',
       text: this.state.text,
-      fromTeamLead: this.props.teamLead == this.props.handle,
+      fromTeamLead: this.props.teamLead.handle == this.props.handle,
+      ghostly: !this.props.alive,
       id: `${this.props.handle}-${nextId()}`
     })
       .then(() => {
@@ -288,7 +289,7 @@ class MainChat extends React.Component {
               <View style={{
                 flexDirection: 'row'
               }}>
-                <ShowWhen condition={this.props.teamLead == this.props.handle}>
+                <ShowWhen condition={this.props.teamLead.handle == this.props.handle}>
                   <TouchableOpacity onPress={() => {
                     this.props.navigation.navigate('ProposeTeam');
                   }}>
@@ -397,17 +398,17 @@ class MainChat extends React.Component {
             onChangeText={text => {
               this.setState({text});
             }}
-            placeholder='Choose your words carefully.'
+            placeholder={this.props.alive ? 'Choose your words carefully' : 'You are dead. The living cannot hear you.'}
             placeholderTextColor={TERTIARY}
             multiline
             maxLength={140}
             value={this.state.text}
           />
-          <TouchableOpacity onPress={this.handleSendMessage}>
+          <TouchableOpacity onPress={this.handleSendMessage} disabled={this.state.text.length == 0}>
             <Icon
               name='send-outline'
               size={20}
-              color='white'
+              color={this.state.text.length != 0 ? 'white' : TERTIARY}
             />
           </TouchableOpacity>
         </View>
@@ -419,7 +420,6 @@ class MainChat extends React.Component {
 function mapStateToProps(state) {
   return {
     isHost: state.isHost,
-    players: state.players,
     messages: state.messages,
     handle: state.handle,
     missions: state.missions,
@@ -429,7 +429,8 @@ function mapStateToProps(state) {
     role: state.role,
     numHacksRemaining: state.numHacksRemaining,
     teamLead: state.players[state.teamLeadIndex],
-    gameState: state.state
+    alive: state.alive,
+    gameState: state.state,
   };
 }
 

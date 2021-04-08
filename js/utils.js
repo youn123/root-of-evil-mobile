@@ -37,10 +37,10 @@ export function choose(arr) {
   return Math.floor(Math.random() * arr.length);
 }
 
-export function obfuscateMessage(message, obfuscateHandle) {
+export function obfuscateMessage(message, hideHandle) {
 
   let obfuscatedMessage;
-  if (obfuscateHandle) {
+  if (hideHandle) {
     obfuscatedMessage = obfuscateHandle(message);
   } else {
     obfuscatedMessage = {...message};
@@ -52,7 +52,7 @@ export function obfuscateMessage(message, obfuscateHandle) {
   let charArray = [...message.text];
   let mask = Math.floor(Math.random() * 50);
 
-  decayRate = ageInSeconds * 0.005;
+  decayRate = ageInSeconds * 0.0005;
 
   if (decayRate > 0.5) {
     return obfuscatedMessage;

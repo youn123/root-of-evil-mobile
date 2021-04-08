@@ -10,7 +10,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY, ACCENT } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT, ACCENT_HOT, ACCENT_WARM } from '../settings';
 import RootOfEvil from '../root-of-evil';
 
 import Lobby from '../lobby';
@@ -83,6 +83,10 @@ class ProposeTeam extends React.Component {
     }
   }
 
+  proposeButtonDisabled = () => {
+    return Object.keys(this.state.selected).length != this.props.currentMission.numPeople;
+  }
+
   setStateAsync = newState => {
     return new Promise((resolve, _) => {
       this.setState(newState, resolve);
@@ -124,11 +128,11 @@ class ProposeTeam extends React.Component {
               return (
                 <TouchableOpacity
                   onPress={() => {
-                    this.handleSelect(member);
+                    this.handleSelect(member.handle);
                   }}
                 >
-                  <View style={[styles.selectionOption, {backgroundColor: this.state.selected.hasOwnProperty(member) ? ACCENT : SECONDARY}]}>
-                    <Text>{member}</Text>
+                  <View style={[styles.selectionOption, {backgroundColor: this.state.selected.hasOwnProperty(member.handle) ? ACCENT_HOT : SECONDARY}]}>
+                    <Text>{member.handle}</Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -138,8 +142,9 @@ class ProposeTeam extends React.Component {
         <TouchableOpacity
           style={{alignSelf: 'center', marginTop: 20}}
           onPress={this.handlePropose}
+          disabled={this.proposeButtonDisabled()}
         >
-          <Text style={styles.borderButton}>Propose</Text>
+          <Text style={[styles.borderButton, this.proposeButtonDisabled() ? {color: SECONDARY, borderColor: SECONDARY} : {}]}>Propose</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
