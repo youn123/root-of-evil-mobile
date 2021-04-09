@@ -38,8 +38,6 @@ class Lobby {
         messageId = generateRandomBase64String(7);
       }
 
-      console.log(`Sending messae with id: ${messageId}`);
-
       let promise = new Promise((resolve, reject) => {
         this.pending.set(messageId, {resolve, reject});
       });

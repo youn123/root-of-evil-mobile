@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 
-import { TERTIARY, ACCENT, ACCENT_WARM } from '../settings';
+import { TERTIARY, ACCENT, ACCENT_WARM, ACCENT_HOT } from '../settings';
 
 const styles = StyleSheet.create({
   bubble: {

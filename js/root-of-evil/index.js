@@ -130,8 +130,8 @@ function countVotes(gameState) {
 
   for (let evilMember of Object.keys(gameState.killVotes)) {
     numKillVotes++;
-    if (gameState.killVotes[evilMember.handle] && gameState.killVotes[evilMember.handle] != '__None') {
-      victim = gameState.killVotes[evilMember.handle];
+    if (gameState.killVotes[evilMember] && gameState.killVotes[evilMember] != '__None') {
+      victim = gameState.killVotes[evilMember];
 
       if (!victimsToVotes[victim]) {
         victimsToVotes[victim] = 1;
@@ -146,6 +146,12 @@ function countVotes(gameState) {
 
   if ((numVotedYes + numVotedNo) == survivingMembers.length && numKillVotes == survivingEvilMembers.length) {
     let victimSuccessfullyKilled = victim && victimsToVotes[victim] == survivingEvilMembers.length;
+
+    console.log(`[root-of-evil] Game state:`);
+    console.log(`[root-of-evil]   victim: ${victim}`);
+    console.log(`[root-of-evil]   victimsToVotes: ${victimsToVotes[victim]}`);
+    console.log(`[root-of-evil]   survivingEvilMembers: ${survivingEvilMembers.length}`);
+    console.log(`[root-of-evil]   victimSuccessfullyKilled: ${victimSuccessfullyKilled}`);
 
     if (victimSuccessfullyKilled) {
       newGameState.players = gameState.players.map(player => {

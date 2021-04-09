@@ -79,7 +79,7 @@ class RoleAssignment extends React.Component {
             from: '__announcement_high',
             to: '__everyone',
             id: `${this.props.handle}-${nextId()}`,
-            text: `Team lead for mission ${this.props.currentMissionIndex} is ${this.props.teamLead.handle}. Choose ${this.props.currentMission.numPeople} people to go on the mission.`
+            text: `Team lead for mission #${this.props.currentMissionIndex+1} is ${this.props.teamLead.handle}. Choose ${this.props.currentMission.numPeople} people to go on the mission.`
           });
         });
     }

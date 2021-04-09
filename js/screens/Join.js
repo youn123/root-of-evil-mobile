@@ -20,7 +20,7 @@ import RootOfEvil from '../root-of-evil';
 import Lobby from '../lobby';
 // import Lobby from '../mocks/lobby';
 
-import { PRIMARY, SECONDARY, ACCENT } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT, ACCENT_HOT } from '../settings';
 
 const styles = StyleSheet.create({
   container: {
@@ -111,34 +111,8 @@ class Join extends React.Component {
   }
 
   render() {
-    // let modal;
-
-    // switch (this.state.modalState) {
-    //   case 'LOADING':
-    //     modal = (
-    //       <View style={styles.modal}>
-    //         <ActivityIndicator size='large' color='grey' />
-    //       </View>
-    //     );
-    //     break;
-    //   default:
-    //     modal = null;
-    //     break;
-    // }
-
     return (
       <SafeAreaView style={styles.container}>
-        {/* <Modal
-          animationType='none'
-          visible={this.state.modalState != 'HIDDEN'}
-          transparent
-        >>
-
-          </View>
-          <View style={styles.modalBackground}>
-            {modal}
-          </View>
-        </Modal> */}
         <View style={styles.header}>
           <TouchableOpacity onPress={this.props.navigation.goBack}>
             <Icon
@@ -150,7 +124,7 @@ class Join extends React.Component {
           <TouchableOpacity
             style={[
               styles.nextButton,
-              {backgroundColor: this.joinButtonDisabled() ? SECONDARY : ACCENT}
+              {backgroundColor: this.joinButtonDisabled() ? SECONDARY : ACCENT_HOT}
             ]}
             disabled={this.joinButtonDisabled()}
             onPress={this.handleNext}
@@ -158,7 +132,7 @@ class Join extends React.Component {
             <Icon
               name='chevron-forward-outline'
               size={40}
-              color='white'
+              color={PRIMARY}
             />
           </TouchableOpacity>
         </View>

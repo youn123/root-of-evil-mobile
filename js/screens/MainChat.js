@@ -319,22 +319,19 @@ class MainChat extends React.Component {
                   }}
                 >
                   <TouchableOpacity
-                    disabled={this.props.numHacksRemaining == 0}
+                    disabled={this.props.numHacksRemaining == 0 || !this.props.alive}
                     onPress={() => {
-                      // if (this.props.privateChatLifeCycleState.type == 'None') {
-                      //   this.props.setNumHacksRemaining(this.props.numHacksRemaining - 1);
-                      // }
                       this.props.navigation.navigate('Hack');
                     }}
                   >
-                    <Text style={{marginRight: 3, color: this.props.numHacksRemaining == 0 ? 'grey' : 'white'}}>Hack</Text>
+                    <Text style={{marginRight: 3, color: (this.props.numHacksRemaining == 0 || !this.props.alive) ? TERTIARY : 'white'}}>Hack</Text>
                   </TouchableOpacity>
                   <View style={{
                     backgroundColor: TERTIARY,
                     paddingHorizontal: 2,
                     borderRadius: 2
                   }}>
-                    <Text>{this.props.numHacksRemaining}</Text>
+                    <Text style={{color: (this.props.numHacksRemaining == 0 || !this.props.alive) ? SECONDARY : 'white'}}>{this.props.numHacksRemaining}</Text>
                   </View>
                 </ShowWhen>
               </View>
@@ -347,7 +344,7 @@ class MainChat extends React.Component {
             paddingVertical: 7
           }}>
             {this.props.missions.map((mission, index) => {
-              return <MissionIndicator {...mission} current={this.props.currentMissionIndex == index} />;
+              return <MissionIndicator {...mission} current={this.props.currentMissionIndex == index} key={`${index}`} />;
             })}
           </View>
         </View>
@@ -360,11 +357,9 @@ class MainChat extends React.Component {
               this.flatListRef = ref;
             }}
             onScroll={({ nativeEvent }) => {
-              console.log(nativeEvent.contentOffset.y);
-
               // Scrolling up
               if (nativeEvent.contentOffset.y < this.state.scrollOffset) {
-                console.log('Scrolling up');
+                console.log('[MainChat] Scrolling up');
                 this.setState({
                   scrollOffset: nativeEvent.contentOffset.y,
                   endReached: false
@@ -378,7 +373,7 @@ class MainChat extends React.Component {
             scrollEventThrottle
             onEndReachedThreshold={0.05}
             onEndReached={() => {
-              console.log('onEndReached()');
+              console.log(`[MainChat] onEndReached()`);
               this.setState({
                 endReached: true
               });

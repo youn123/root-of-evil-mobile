@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
 
 class PrivateChat extends React.Component {
   state = {
-    screenState: 'Select', // enum('Select', 'Loading', 'Connected', 'Rejected', 'Terminated', 'Requested', 'Left')
+    screenState: 'Select', // enum('Select', 'Loading', 'Connected', 'Rejected', 'Requested', 'Left')
     selected: {},
     logs: [],
     text: '',
@@ -94,7 +94,7 @@ class PrivateChat extends React.Component {
 
   componentDidMount() {
     if (this.props.privateChatLifeCycleState.type == 'Requested') {
-      if (this.props.privateChatLifeCycleState.hasTerminatePrivilege) {
+      if (this.props.privateChatLifeCycleState.isHost) {
         this.setState({screenState: 'Loading'});
       } else {
         this.setState({screenState: 'Requested'});
@@ -107,7 +107,7 @@ class PrivateChat extends React.Component {
     Keyboard.addListener('keyboardDidHide', this.handleKeyboardDidHide);
 
     this.props.navigation.addListener('focus', () => {
-      console.log('PrivateChat focused');
+      console.log('[PrivateChat] PrivateChat focused');
     });
   }
 
@@ -121,20 +121,16 @@ class PrivateChat extends React.Component {
       this.setState({screenState: 'Connected'});
     }
 
-    if (prevProps.privateChatLifeCycleState.type == 'Connected' && this.props.privateChatLifeCycleState.type == 'None' && prevState.screenState != 'Left') {
-      this.setState({screenState: 'Terminated'});
-    }
-
     if (this.state.endReached && prevProps.messages != this.props.messages) {
       this.flatListRef && this.flatListRef.scrollToEnd();
     }
   }
 
   handleKeyboardDidShow = event => {
-    const { height: widnowHeight } = Dimensions.get('window');
+    const { height: windowHeight } = Dimensions.get('window');
 
-    console.log(`screen height: ${widnowHeight}`);
-    console.log(`keyboard height: ${event.endCoordinates.height}`);
+    // console.log(`screen height: ${windowHeight}`);
+    // console.log(`keyboard height: ${event.endCoordinates.height}`);
 
     this.flatListRef.scrollToOffset({
       offset: this.state.scrollOffset + event.endCoordinates.height
@@ -163,7 +159,7 @@ class PrivateChat extends React.Component {
     let connectReqs = [];
     let chatRoomId = `__${this.props.handle}-pc-${nextId()}`;
 
-    this.props.setPrivateChatLifeCycleState({type: 'Requested', chatRoomId, hasTerminatePrivilege: true});
+    this.props.setPrivateChatLifeCycleState({type: 'Requested', chatRoomId, isHost: true});
 
     for (let member in this.state.selected) {
       connectReqs.push(
@@ -181,7 +177,6 @@ class PrivateChat extends React.Component {
 
     for (let req of connectReqs) {
       await req.then(res => {
-        console.log(`res: ${res.result} ${res.from}`);
         if (res.result == 'Accepted') {
           atLeastOneAccepted = true;
           this.setState({
@@ -253,17 +248,19 @@ class PrivateChat extends React.Component {
       });
   }
 
-  handleTerminate = () => {
+  handleLeave = () => {
     PrivateChatStore.scheduleTermination(this.props.privateChatId);
+    this.setState({screenState: 'Left'});
 
     Lobby.getCurrentLobby().send({
-      type: 'TERMINATE_PRIVATE_CHAT',
-      from: this.props.handle,
-      to: this.props.privateChatId
-    })
-      .then(() => {
-        this.setState({screenState: 'Terminated'});
-      });
+      type: 'MESSAGE',
+      from: '__announcement_low',
+      to: this.props.privateChatId,
+      text: `${this.props.handle} has left the chat.`,
+      id: `${this.props.handle}-${nextId()}`
+    });
+
+    this.props.clearPrivateChat();
   }
 
   connectButtonDisabled = () => {
@@ -320,6 +317,7 @@ class PrivateChat extends React.Component {
                     onPress={() => {
                       this.handleSelect(member.handle);
                     }}
+                    key={member.handle}
                   >
                     <View style={[styles.selectionOption, {backgroundColor: this.state.selected.hasOwnProperty(member.handle) ? ACCENT_HOT : SECONDARY}]}>
                       <Text>{member.handle}</Text>
@@ -347,19 +345,7 @@ class PrivateChat extends React.Component {
             flex: 1
           }}>
             <Text>Trying to establish connection...{<RetroLoadingIndicator />}</Text>
-            {this.state.logs.map(log => <Text>{log}</Text>)}
-          </View>
-        </>
-      );
-    } else if (this.state.screenState == 'Terminated') {
-      content = (
-        <>
-          <View style={{
-            paddingHorizontal: 20,
-            marginTop: 20,
-            flex: 1
-          }}>
-            <Text>Chat has been terminated by host.</Text>
+            {this.state.logs.map((log, i) => <Text key={`${i}`}>{log}</Text>)}
           </View>
         </>
       );
@@ -371,7 +357,7 @@ class PrivateChat extends React.Component {
             marginTop: 20,
             flex: 1
           }}>
-            <Text>Everyone has rejected.</Text>
+            <Text>Everyone has rejected your request.</Text>
           </View>
         </>
       );
@@ -452,27 +438,9 @@ class PrivateChat extends React.Component {
               color='white'
             /> 
           </TouchableOpacity>
-          <ShowWhen condition={this.props.privateChatLifeCycleState.hasTerminatePrivilege}>
-            <TouchableOpacity onPress={this.handleTerminate}>
-              <Text>Terminate</Text>
-            </TouchableOpacity>
-          </ShowWhen>
-          <ShowWhen condition={!this.props.privateChatLifeCycleState.hasTerminatePrivilege}>
-            <TouchableOpacity onPress={() => {
-              this.setState({screenState: 'Left'});
-
-              Lobby.getCurrentLobby().send({
-                type: 'MESSAGE',
-                from: '__announcement_low',
-                to: this.props.privateChatId,
-                text: `${this.props.handle} has left the chat.`
-              });
-
-              this.props.clearPrivateChat();
-            }}>
-              <Text>Leave</Text>
-            </TouchableOpacity>
-          </ShowWhen>
+          <TouchableOpacity onPress={this.handleLeave}>
+            <Text>Leave</Text>
+          </TouchableOpacity>
         </View>
         <View style={{flex: 1}}>
           <FlatList

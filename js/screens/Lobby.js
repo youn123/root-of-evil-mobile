@@ -75,7 +75,7 @@ class Lobby extends React.Component {
           </ShowWhen>
           <ShowWhen condition={status == 'Ready'}>
             <TouchableOpacity onPress={this.handleStart}>
-              <Text style={[styles.nextButton, {backgroundColor: ACCENT_HOT, color: PRIMARY}]}>Start!</Text>
+              <Text style={[styles.nextButton, {backgroundColor: ACCENT_HOT, color: PRIMARY}]}>Start</Text>
             </TouchableOpacity>
           </ShowWhen>
         </View>

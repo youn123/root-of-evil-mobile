@@ -92,7 +92,6 @@ class Handle extends React.Component {
   }
 
   componentWillUnmount() {
-    console.log('[Handle componentWillUnmount()]');
   }
 
   validateInputLength = input => {

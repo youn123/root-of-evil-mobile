@@ -17,7 +17,7 @@ import { connect } from 'react-redux';
 
 import { PRIMARY, SECONDARY, TERTIARY, ACCENT, ACCENT_HOT, ACCENT_WARM } from '../settings';
 
-import { sleep } from '../utils';
+import { sleep, nextId } from '../utils';
 import { RetroLoadingIndicator, TextBubble } from '../components';
 import RootOfEvil from '../root-of-evil';
 import { getGameStateFromStore } from '../reducer';
@@ -105,7 +105,7 @@ class Mission extends React.Component {
 
   componentDidUpdate(prevProps) {
     if (this.props.gameState != prevProps.gameState) {
-      console.log(`[Mission componentDidUpdate ${this.props.handle}] gameState: '${this.props.gameState}'`);
+      console.log(`[Mission] componentDidUpdate() gameState: '${this.props.gameState}'`);
 
       if (this.props.gameState == 'MissionInProgress') {
         if (this.props.proposedTeam.includes(this.props.handle)) {
@@ -115,8 +115,32 @@ class Mission extends React.Component {
         }
       } else if (this.props.gameState == 'MissionComplete') {
         this.setState({screenState: 'MissionComplete'});
+
+        if (this.props.isHost) {
+          let newGameState = RootOfEvil.tick(getGameStateFromStore(store));
+
+          Lobby.getCurrentLobby().send({
+            type: 'MESSAGE',
+            from: '__announcement_high',
+            to: '__everyone',
+            id: `${this.props.handle}-${nextId()}`,
+            text: `Team lead for mission #${newGameState.currentMissionIndex+1} is ${newGameState.players[newGameState.teamLeadIndex].handle}. Choose ${newGameState.missions[newGameState.currentMissionIndex].numPeople} people to go on the mission.`
+          });
+        }
       } else if (this.props.gameState == 'MissionAborted') {
         this.setState({screenState: 'MissionAborted'});
+
+        if (this.props.isHost) {
+          let newGameState = RootOfEvil.tick(getGameStateFromStore(store));
+
+          Lobby.getCurrentLobby().send({
+            type: 'MESSAGE',
+            from: '__announcement_high',
+            to: '__everyone',
+            id: `${this.props.handle}-${nextId()}`,
+            text: `Team lead for mission ${newGameState.currentMissionIndex} is ${newGameState.teamLead.handle}. Choose ${newGameState.currentMission.numPeople} people to go on the mission.`
+          });
+        }
       }
     }
   }
@@ -155,7 +179,7 @@ class Mission extends React.Component {
             <ScrollView>
               {Object.keys(this.props.votes).map(member => {
                 return (
-                  <View style={styles.member}>
+                  <View style={styles.member} key={member}>
                     <Text>{member}</Text>
                     <ShowWhen condition={this.props.votes[member] === null}>
                       <Icon
@@ -288,6 +312,7 @@ class Mission extends React.Component {
               <TouchableOpacity
                 onPress={() => {
                   let newGameState = RootOfEvil.tick(getGameStateFromStore(store));
+
                   this.props.navigation.navigate('MainChat');
 
                   store.dispatch({
@@ -331,7 +356,8 @@ function mapStateToProps(state) {
     completeMission: state.completeMission,
     failMission: state.failMission,
     killAttempted: state.killAttempted,
-    killed: state.killed
+    killed: state.killed,
+    isHost: state.isHost
   };
 }
 

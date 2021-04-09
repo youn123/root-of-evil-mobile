@@ -100,6 +100,7 @@ class Kill extends React.Component {
                   onPress={() => {
                     this.handleSelect(member.handle);
                   }}
+                  key={member.handle}
                 >
                   <View style={[styles.selectionOption, {backgroundColor: this.state.selected == member.handle ? ACCENT_HOT : SECONDARY}]}>
                     <Text>{member.handle}</Text>

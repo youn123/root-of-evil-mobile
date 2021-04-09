@@ -54,7 +54,7 @@ class New extends React.Component {
   componentDidMount() {
     Lobby.create(SERVER_ADDR)
       .then(lobby => {
-        console.log(`Got lobbyId: ${lobby.lobbyId}`);
+        console.log(`[New] Got lobbyId: ${lobby.lobbyId}`);
         
         this.props.hostNewGame(lobby.lobbyId);
         this.setState({screenState: 'Succeeded'});

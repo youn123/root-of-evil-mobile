@@ -18,7 +18,8 @@ function scheduleTermination(chatId, ms = 120000) {
     return;
   }
 
-  // Set chat to expire in 2 minutes
+  // Set chat to expire in 2 minutes.
+  // Warning: Setting a timer for long time on Android is bad?
   setTimeout(function() {
     chats.get(chatId).hackable = false; 
   }, ms);

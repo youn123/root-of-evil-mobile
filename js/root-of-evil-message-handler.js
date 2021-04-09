@@ -1,7 +1,7 @@
 import RootOfEvil, { PrivateChatStore } from './root-of-evil';
 import { getGameStateFromStore } from './reducer';
 import { removeMetadata } from './lobby'; 
-import { obfuscateMessage, obfuscateHandle, choose } from './utils';
+import { obfuscateMessage, obfuscateHandle, choose, nextId } from './utils';
 
 export async function hostHandleRootOfEvilMessage(messages, lobby, store) {
   let sendFinalGameState;
@@ -30,10 +30,10 @@ export async function hostHandleRootOfEvilMessage(messages, lobby, store) {
         newGameState = RootOfEvil.apply(getGameStateFromStore(store), messageWithoutMetadata);
 
         if (newGameState.state == 'MissionComplete') {
-          console.log('[hostHandleRootOfEvilMessage] state=MissionComplete');
+          console.log('[message-handler] hostHandleRootOfEvilMessage() state=MissionComplete');
 
           if (newGameState.privateChatLeaked) {
-            console.log('[hostHandleRootOfEvilMessage] private chat leaked');
+            console.log('message-handler] hostHandleRootOfEvilMessage() private chat leaked');
 
             let fetchLeakedMessages = [];
   
@@ -64,6 +64,7 @@ export async function hostHandleRootOfEvilMessage(messages, lobby, store) {
         });
         break;
       case 'SET_KILL_CONTRACT':
+        console.log(`[hostHandleRootOfEvilMessage] Kill contract added: ${messageWithoutMetadata.handle}`);
         newGameState = {...getGameStateFromStore(store)};
         newGameState.killContracts = [...newGameState.killContracts, messageWithoutMetadata.handle];
 
@@ -104,7 +105,10 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
         break;
       case 'MESSAGE':
         if (to == '__everyone') {
-          console.log(messageWithoutMetadata);
+          if (messageWithoutMetadata.ghostly && store.getState().alive)
+          {
+            break;
+          }
 
           if (messageWithoutMetadata.fromTeamLead) {
             messageWithoutMetadata.from = messageWithoutMetadata.from + ' [Lead]';
@@ -116,6 +120,10 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
           });
         } else if (to === store.getState().privateChatId) {
           if (store.getState().role == RootOfEvil.Roles.FBI) {
+            if (from.indexOf('__') == 0) {
+              break;
+            }
+
             store.dispatch({
               type: 'ADD_PRIVATE_MESSAGE',
               message: obfuscateMessage(message, from != store.getState().privateChatLifeCycleState.personOfInterest)
@@ -146,9 +154,6 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
         }
         break;
       case 'REQUEST_PRIVATE_CHAT':
-        console.log(`${store.getState().handle} received REQUEST_PRIVATE_CHAT`);
-        console.log(store.getState().privateChatLifeCycleState);
-
         if (to != store.getState().handle) {
           break;
         }
@@ -177,8 +182,6 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
           }
         });
       case 'ESTABLISHED_PRIVATE_CHAT':
-        console.log('received ESTABLISHED_PRIVATE_CHAT');
-
         if (store.getState().privateChatLifeCycleState.type == 'Requested') {
           let chatRoomId = store.getState().privateChatLifeCycleState.chatRoomId;
 
@@ -196,7 +199,8 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
               type: 'MESSAGE',
               from: '__announcement_low',
               to: chatRoomId,
-              text: `${store.getState().handle} has joined the chat.`
+              text: `${store.getState().handle} has joined the chat.`,
+              id: `${store.getState().handle}-${nextId()}`
             });
           }
         }
