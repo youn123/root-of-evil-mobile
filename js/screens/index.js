@@ -11,6 +11,7 @@ import ProposeTeam from './ProposeTeam';
 import Vote from './Vote';
 import Mission from './Mission';
 import Kill from './Kill';
+import GameOver from './GameOver';
 
 module.exports = {
   Menu,
@@ -25,5 +26,6 @@ module.exports = {
   ProposeTeam,
   Vote,
   Mission,
-  Kill
+  Kill,
+  GameOver
 };

@@ -8,11 +8,11 @@ const INITIAL_STATE = {
   privateChatId: null,
   privateChatLifeCycleState: {type: 'None'},
   privateMessages: [],
-  abilityInCooldown: false,
+  privateChatCooldown: false,
   numHacksRemaining: 7,
   // Game state
   players: null,
-  state: null, // enum(Created, TeamBuilding, Vote, MissionComplete, FBIWon, RootOfEvilWon)
+  state: null, // enum(Created, TeamBuilding, Vote, MissionInProgress, MissionAborted, MissionComplete, GameOver)
   evilMembers: [],
   missions: null,
   currentMissionIndex: null,
@@ -25,6 +25,9 @@ const INITIAL_STATE = {
   killAttempted: null,
   killed: null,
   privateChatLeaked: null,
+  winner: null,
+  gameOverMessage: null,
+  currentMissionIndex: 0,
   // Player state embedded within game state
   alive: true
 };
@@ -76,10 +79,10 @@ export default function reducer(state = INITIAL_STATE, action) {
         ...state,
         role: action.role
       };
-    case 'SET_ABILITY_IN_COOLDOWN':
+    case 'SET_PRIVATE_CHAT_COOLDOWN':
       return {
         ...state,
-        abilityInCooldown: action.abilityInCooldown
+        privateChatCooldown: action.privateChatCooldown
       };
     case 'SET_PRIVATE_CHAT_LIFE_CYCLE_STATE':
       return {
@@ -97,7 +100,7 @@ export default function reducer(state = INITIAL_STATE, action) {
         privateChatId: null,
         privateMessages: [],
         privateChatLifeCycleState: {type: 'None'},
-        abilityInCooldown: true
+        privateChatCooldown: true
       };
     case 'ADD_PRIVATE_MESSAGE':
       return {
@@ -113,6 +116,10 @@ export default function reducer(state = INITIAL_STATE, action) {
       return {
         ...state,
         privateMessages: action.messages
+      };
+    case 'CLEAR_STORE':
+      return {
+        ...INITIAL_STATE
       };
   }
 
@@ -130,7 +137,7 @@ export function getGameStateFromStore(store) {
     privateChatId,
     privateChatLifeCycleState,
     privateMessages,
-    abilityInCooldown,
+    privateChatCooldown,
     numHacksRemaining,
     alive,
     ...gameState

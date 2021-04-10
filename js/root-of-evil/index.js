@@ -1,5 +1,6 @@
 const PrivateChatStore = require('./private-chat-store');
 const { choose, chooseNoReplacement } = require('../utils');
+const { calculateNumEvilMembers, generateMissions } = require('../game-settings');
 
 const Roles = {
   RootOfEvil: 'RootOfEvil',
@@ -9,15 +10,17 @@ const Roles = {
 function createNew() {
   return {
     players: [],
-    state: 'Created', // enum(Created, TeamBuilding, Vote, MissionInProgress, MissionAborted, MissionComplete, FBIWon, RootOfEvilWon)
+    state: 'Created', // enum(Created, TeamBuilding, Vote, MissionInProgress, MissionAborted, MissionComplete, GameOver)
     evilMembers: [],
     missions: [
-      {numPeople: 2, status: null},
-      {numPeople: 2, status: null},
-      {numPeople: 3, status: null},
-      {numPeople: 3, status: null},
-      {numPeople: 3, status: null}
+      {numPeople: 1, status: null},
+      {numPeople: 1, status: null},
+      {numPeople: 1, status: null},
+      {numPeople: 1, status: null},
+      {numPeople: 1, status: null}
     ],
+    winner: null,
+    gameOverMessage: null,
     currentMissionIndex: 0,
     teamLeadIndex: null,
     // Mission-specific state
@@ -244,10 +247,16 @@ function tick(gameState) {
   }
 
   if (fbiWonMissions >= 3) {
-    newGameState.state = 'FBIWon';
+    newGameState.state = 'GameOver';
+    newGameState.winner = Roles.FBI;
+    newGameState.gameOverMessage = `FBI won ${fbiWonMissions} out of ${gameState.missions.length} missions.`;
+    
     return newGameState;
   } else if (rootOfEvilWonMissions >= 3) {
-    newGameState.state = 'RootOfEvilWon';
+    newGameState.state = 'GameOver';
+    newGameState.winner = Roles.RootOfEvil;
+    newGameState.gameOverMessage = `Root of Evil won ${rootOfEvilWonMissions} out of ${gameState.missions.length} missions.`;
+
     return newGameState;
   } else {
     let survivingFBIAgents = gameState.players.filter(player => player.alive && player.role != Roles.RootOfEvil);
@@ -255,7 +264,10 @@ function tick(gameState) {
 
     // If somehow population parity is reached
     if (survivingEvilMembers == survivingFBIAgents) {
-      newGameState.state = 'RootOfEvilWon';
+      newGameState.state = 'GameOver';
+      newGameState.winner = Roles.RootOfEvil;
+      newGameState.gameOverMessage = `Too many FBI agents were killed`;
+
       return newGameState;
     }
   }
@@ -284,19 +296,7 @@ function tick(gameState) {
 }
   
 function start(gameState) {
-  let numEvilMembers;
-  let numPlayers = gameState.players.length;
-
-  // These mappings will need to be tweaked.
-  if (numPlayers == 5 || numPlayers == 6) {
-    numEvilMembers = 2;
-  } else if (numPlayers <= 10) {
-    numEvilMembers = 3;
-  } else if (numPlayers <= 15) {
-    numEvilMembers = 4;
-  } else {
-    numEvilMembers = 5;
-  }
+  let numEvilMembers = calculateNumEvilMembers(gameState);
 
   let { chosen } = chooseNoReplacement(gameState.players.map(player => player.handle), numEvilMembers);
   let teamLeadIndex = choose(gameState.players);
@@ -313,9 +313,12 @@ function start(gameState) {
         ...player,
         role: Roles.RootOfEvil
       };
+    } else {
+      return {
+        ...player,
+        role: Roles.FBI
+      }
     }
-
-    return player;
   });
 
   newGameState.evilMembers = chosen.map(handle => {
@@ -326,13 +329,9 @@ function start(gameState) {
     };
   });
 
-  return {
-    newGameState,
-    response: {
-      ...newGameState,
-      type: 'NEW_GAME_STATE'
-    }
-  };
+  newGameState.missions = generateMissions(newGameState);
+
+  return newGameState;
 }
 
 function startWithConfig(gameState, config) {
@@ -359,8 +358,6 @@ function startWithConfig(gameState, config) {
         role: Roles.FBI
       }
     }
-
-    return player;
   });
 
   newGameState.evilMembers = chosen.map(handle => {

@@ -13,14 +13,14 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY, ACCENT_HOT, TERTIARY } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT_HOT, TERTIARY } from '../styles';
 
 import { TextBubble, RetroLoadingIndicator } from '../components';
 import store from '../store';
 
-import Lobby from '../lobby';
+// import Lobby from '../lobby';
 import { sleep, obfuscateMessage } from '../utils';
-// import Lobby from '../mocks/lobby';
+import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {

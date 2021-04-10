@@ -163,7 +163,7 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
             result: 'Rejected',
             from: store.getState().handle
           });
-        } else if (store.getState().abilityInCooldown) {
+        } else if (store.getState().privateChatCooldown) {
           lobby.respondTo(message, {
             result: 'Rejected',
             from: store.getState().handle

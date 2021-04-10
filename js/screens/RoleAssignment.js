@@ -21,11 +21,12 @@ import store from '../store';
 import { sleep, generateRandomBase64String, nextId } from '../utils';
 import { Handles } from '../components';
 
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 import { ShowWhen } from '../hoc';
 
-import { PRIMARY } from '../settings';
+import { PRIMARY } from '../styles';
+import { calculateNumHacks } from '../game-settings';
 
 const { height } = Dimensions.get('window');
 
@@ -62,9 +63,7 @@ class RoleAssignment extends React.Component {
     if (this.props.isHost) {
       sleep(2000)
         .then(() => {
-          let { newGameState } = RootOfEvil.startWithConfig(getGameStateFromStore(store), {
-            numEvilMembers: 2
-          });
+          let newGameState = RootOfEvil.start(getGameStateFromStore(store));
     
           this.props.setGameState(newGameState);
     
@@ -90,6 +89,8 @@ class RoleAssignment extends React.Component {
 
   componentDidUpdate(prevProps) {
     if (prevProps.role != this.props.role) {
+      this.props.setNumHacksRemaining(calculateNumHacks(getGameStateFromStore(store)));
+
       Animated.sequence([
         Animated.timing(this.animateLogo, {
           toValue: 2,
@@ -229,7 +230,8 @@ function mapDispatchToProps(dispatch) {
   return {
     setAppState: appState => dispatch({type: 'SET_APP_STATE', appState}),
     setGameState: gameState => dispatch({type: 'SET_GAME_STATE', gameState}),
-    setRole: role => dispatch({type: 'SET_ROLE', role})
+    setRole: role => dispatch({type: 'SET_ROLE', role}),
+    setNumHacksRemaining: numHacks => dispatch({type: 'SET_NUM_HACKS_REMAINING', numHacks})
   };
 }
 

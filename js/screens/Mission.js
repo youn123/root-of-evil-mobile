@@ -15,7 +15,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY, TERTIARY, ACCENT, ACCENT_HOT, ACCENT_WARM } from '../settings';
+import { PRIMARY, SECONDARY, TERTIARY, ACCENT, ACCENT_HOT, ACCENT_WARM } from '../styles';
 
 import { sleep, nextId } from '../utils';
 import { RetroLoadingIndicator, TextBubble } from '../components';
@@ -24,8 +24,8 @@ import { getGameStateFromStore } from '../reducer';
 import store from '../store';
 
 import { ShowWhen } from '../hoc';
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const { height } = Dimensions.get('window');
 
@@ -313,12 +313,16 @@ class Mission extends React.Component {
                 onPress={() => {
                   let newGameState = RootOfEvil.tick(getGameStateFromStore(store));
 
-                  this.props.navigation.navigate('MainChat');
-
                   store.dispatch({
                     type: 'SET_GAME_STATE',
                     gameState: newGameState
                   });
+
+                  if (newGameState.state == 'GameOver') {
+                    this.props.navigation.navigate('GameOver');
+                  } else {
+                    this.props.navigation.navigate('MainChat');
+                  }
                 }}
                 style={{marginTop: 20}}
               >

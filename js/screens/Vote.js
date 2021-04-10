@@ -15,14 +15,14 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY, ACCENT_WARM, ACCENT_HOT } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT_WARM, ACCENT_HOT } from '../styles';
 
 import { sleep, nextId } from '../utils';
 import { Handles } from '../components';
 import RootOfEvil from '../root-of-evil';
 
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {

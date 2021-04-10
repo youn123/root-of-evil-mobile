@@ -25,10 +25,11 @@ import {
   ProposeTeam,
   Vote,
   Mission,
-  Kill
+  Kill,
+  GameOver
 } from './js/screens';
 
-import { PRIMARY } from './js/settings';
+import { PRIMARY } from './js/styles';
 import store from './js/store';
 
 const Stack = createStackNavigator();
@@ -64,6 +65,7 @@ class App extends React.Component {
             <Stack.Screen name='Vote' component={Vote} />
             <Stack.Screen name='Mission' component={Mission} />
             <Stack.Screen name='Kill' component={Kill} />
+            <Stack.Screen name='GameOver' component={GameOver} />
           </>
         );
         break;

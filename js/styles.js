@@ -6,5 +6,3 @@ export const ACCENT = '#05C793';
 export const ACCENT_WARM = '#bf9b57';
 export const ACCENT_HOT = '#F8333C';
 export const ACCENT_COOL = '#3b43b3';
-
-export const ABILITY_COOLDOWN_TIME = 120000;

@@ -12,10 +12,10 @@ import { connect } from 'react-redux';
 import store from '../store';
 import { ShowWhen } from '../hoc';
 
-import { getCurrentLobby } from '../lobby';
-// import { getCurrentLobby } from '../mocks/lobby';
-import { hostHandleRootOfEvilMessage } from '../root-of-evil-message-handler';
-import { PRIMARY, SECONDARY, ACCENT_HOT } from '../settings';
+// import { getCurrentLobby } from '../lobby';
+import { getCurrentLobby } from '../mocks/lobby';
+import { hostHandleRootOfEvilMessage } from '../message-handler';
+import { PRIMARY, SECONDARY, ACCENT_HOT } from '../styles';
 
 const styles = StyleSheet.create({
   container: {

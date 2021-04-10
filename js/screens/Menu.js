@@ -9,7 +9,7 @@ import {
   TouchableOpacity
 } from 'react-native';
 
-import { PRIMARY } from '../settings';
+import { PRIMARY } from '../styles';
 
 const styles = StyleSheet.create({
   container: {

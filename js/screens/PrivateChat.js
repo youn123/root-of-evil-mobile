@@ -14,15 +14,15 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY, ACCENT_WARM, ACCENT_HOT, TERTIARY } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT_WARM, ACCENT_HOT, TERTIARY } from '../styles';
 
 import { sleep, nextId } from '../utils';
 import { TextBubble, RetroLoadingIndicator, Handles } from '../components';
 import { PrivateChatStore } from '../root-of-evil';
 
 import { ShowWhen } from '../hoc';
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {

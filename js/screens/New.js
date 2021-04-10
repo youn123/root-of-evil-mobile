@@ -13,10 +13,10 @@ import { ShowWhen } from '../hoc';
 import { SERVER_ADDR } from '../../env';
 import RootOfEvil from '../root-of-evil';
 
-import Lobby from '../lobby';
-// import Lobby from '../mocks/lobby';
+// import Lobby from '../lobby';
+import Lobby from '../mocks/lobby';
 
-import { PRIMARY, SECONDARY, ACCENT_HOT } from '../settings';
+import { PRIMARY, SECONDARY, ACCENT_HOT } from '../styles';
 
 const styles = StyleSheet.create({
   container: {

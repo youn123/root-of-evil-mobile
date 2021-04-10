@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 
-import { TERTIARY, ACCENT, ACCENT_WARM, ACCENT_HOT } from '../settings';
+import { TERTIARY, ACCENT, ACCENT_WARM, ACCENT_HOT } from '../styles';
 
 const styles = StyleSheet.create({
   bubble: {
@@ -13,11 +13,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   announcementLow: {
-    fontStyle: 'italic',
     color: TERTIARY
   },
   announcementHigh: {
-    fontStyle: 'italic',
     color: ACCENT_WARM
   },
   ghostly: {
