@@ -21,8 +21,8 @@ import { TextBubble, RetroLoadingIndicator, Handles } from '../components';
 import { PrivateChatStore } from '../root-of-evil';
 
 import { ShowWhen } from '../hoc';
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -107,8 +107,14 @@ class PrivateChat extends React.Component {
     Keyboard.addListener('keyboardDidHide', this.handleKeyboardDidHide);
 
     this.props.navigation.addListener('focus', () => {
-      console.log('[PrivateChat] PrivateChat focused');
+      console.log('[PrivateChat] focused');
+      this.props.setStatusBarColor(SECONDARY);
     });
+
+    this.props.navigation.addListener('blur', () => {
+      console.log('[PrivateChat] blur');
+      this.props.setStatusBarColor(PRIMARY);
+    })
   }
 
   componentWillUnmount() {
@@ -472,7 +478,7 @@ class PrivateChat extends React.Component {
             onChangeText={text => {
               this.setState({text});
             }}
-            placeholder='An FBI agent may be watching.'
+            placeholder='An FBI agent may be snooping.'
             placeholderTextColor={TERTIARY}
             multiline
             maxLength={140}
@@ -509,7 +515,8 @@ function mapDispatchToProps(dispatch) {
   return {
     setPrivateChatId: privateChatId => dispatch({type: 'SET_PRIVATE_CHAT_ID', privateChatId}),
     setPrivateChatLifeCycleState: privateChatLifeCycleState => dispatch({type: 'SET_PRIVATE_CHAT_LIFE_CYCLE_STATE', privateChatLifeCycleState}),
-    clearPrivateChat: () => dispatch({type: 'CLEAR_PRIVATE_CHAT'})
+    clearPrivateChat: () => dispatch({type: 'CLEAR_PRIVATE_CHAT'}),
+    setStatusBarColor: color => dispatch({type: 'SET_STATUS_BAR_COLOR', color})
   };
 }
 

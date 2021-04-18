@@ -13,8 +13,8 @@ import { connect } from 'react-redux';
 import { PRIMARY, SECONDARY, ACCENT, ACCENT_HOT, ACCENT_WARM } from '../styles';
 import RootOfEvil from '../root-of-evil';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -125,6 +125,10 @@ class ProposeTeam extends React.Component {
             paddingHorizontal: 20
           }}>
             {this.props.players.map(member => {
+              if (!member.alive) {
+                return null;
+              }
+              
               return (
                 <TouchableOpacity
                   onPress={() => {

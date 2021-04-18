@@ -18,9 +18,9 @@ import { PRIMARY, SECONDARY, ACCENT_HOT, TERTIARY } from '../styles';
 import { TextBubble, RetroLoadingIndicator } from '../components';
 import store from '../store';
 
-// import Lobby from '../lobby';
-import { sleep, obfuscateMessage } from '../utils';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+import { sleep, obfuscateMessage, obfuscateHandle } from '../utils';
+// import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -124,26 +124,32 @@ class Hack extends React.Component {
       })
       .then(res => {
         if (res.result == 'Accepted') {
-          let slowlyObfuscate = setInterval(() => {
-            console.log('slowlyObfuscate');
+          // let slowlyObfuscate = setInterval(() => {
+          //   console.log('slowlyObfuscate');
 
-            // console.log(store.getState().privateMessages);
+          //   // console.log(store.getState().privateMessages);
 
-            let newMessages = store.getState().privateMessages.map(message => obfuscateMessage(message, message.from != store.getState().privateChatLifeCycleState.personOfInterest));
-            console.log(newMessages);
-            store.dispatch({
-              type: 'SET_PRIVATE_MESSAGES',
-              messages: newMessages
-            });
-          }, 30000);
+          //   let newMessages = store.getState().privateMessages.map(message => obfuscateMessage(message, message.from != store.getState().privateChatLifeCycleState.personOfInterest));
+          //   console.log(newMessages);
+          //   store.dispatch({
+          //     type: 'SET_PRIVATE_MESSAGES',
+          //     messages: newMessages
+          //   });
+          // }, 30000);
 
           this.props.setPrivateChatId(res.chatRoomId);
           this.props.setPrivateChatLifeCycleState({
             type: 'Connected',
-            personOfInterest: this.state.selected,
-            slowlyObfuscate
+            personOfInterest: this.state.selected
+            // slowlyObfuscate
           });
-          this.props.setPrivateMessages(res.messages.map(message => obfuscateMessage(message, message.from != this.state.selected)));
+          this.props.setPrivateMessages(res.messages.map(message => {
+            if (message.from != this.state.selected) {
+              return obfuscateHandle(message);
+            } else {
+              return message;
+            }
+          }));
 
           this.setState({screenState: 'Connected'});
         } else {
@@ -154,7 +160,7 @@ class Hack extends React.Component {
 
   handleDisconnect = () => {
     this.setState({screenState: 'Disconnected'});
-    clearInterval(this.props.privateChatLifeCycleState.slowlyObfuscate);
+    // clearInterval(this.props.privateChatLifeCycleState.slowlyObfuscate);
     this.props.clearPrivateChat();
   }
 
@@ -202,11 +208,16 @@ class Hack extends React.Component {
               paddingHorizontal: 20
             }}>
               {this.props.players.filter(member => member.handle != this.props.handle).map(member => {
+                if (!member.alive) {
+                  return null;
+                }
+                
                 return (
                   <TouchableOpacity
                     onPress={() => {
                       this.handleSelect(member.handle);
                     }}
+                    key={member.handle}
                   >
                     <View style={[styles.selectionOption, {backgroundColor: this.state.selected == member.handle ? ACCENT_HOT : SECONDARY}]}>
                       <Text>{member.handle}</Text>

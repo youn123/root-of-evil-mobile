@@ -4,7 +4,7 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="android:textColor">#FFFFFF</item>
-        <item name="android:windowBackground">#0D0628</item>
+        <item name="android:windowBackground">#1e1e1e</item>
     </style>
 
 </resources>

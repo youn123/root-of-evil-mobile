@@ -101,8 +101,13 @@ class Lobby {
         }
       })
       .catch(err => {
-        console.log(`Error in _continuouslyFetch:`);
+        console.log('[_continuouslyFetch] An error occured:');
         console.log(err);
+
+        // Recover from failure
+        if (!this.stop) {
+          setTimeout(this._continuouslyFetch.bind(this), 1);
+        }
       });
   }
 
@@ -165,9 +170,9 @@ export function join(serverAddr, lobbyId) {
       if (json.status == 'Ok') {
         currentLobby = new Lobby(serverAddr, lobbyId, json.client_id);
         return currentLobby;
+      } else {
+        throw new Error(json.message);
       }
-
-      throw new Error('Could not join for some reason.');
     });
 }
 

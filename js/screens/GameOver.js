@@ -4,28 +4,19 @@ import {
   StyleSheet,
   View,
   Text,
-  TextInput,
   TouchableOpacity,
-  FlatList,
-  Keyboard,
   Dimensions,
-  ScrollView,
   BackHandler
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { connect } from 'react-redux';
 
-import { PRIMARY, SECONDARY, TERTIARY, ACCENT, ACCENT_HOT, ACCENT_WARM } from '../styles';
+import { PRIMARY, SECONDARY, ACCENT, ACCENT_HOT, ACCENT_WARM } from '../styles';
 
-import { sleep, nextId } from '../utils';
-import { RetroLoadingIndicator, TextBubble } from '../components';
 import RootOfEvil from '../root-of-evil';
-import { getGameStateFromStore } from '../reducer';
-import store from '../store';
 
-import { ShowWhen } from '../hoc';
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
+import appInsights from '../telemetry';
 
 const { height } = Dimensions.get('window');
 
@@ -68,6 +59,13 @@ const styles = StyleSheet.create({
 class GameOver extends React.Component {
   componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
+
+    if (this.props.isHost) {
+      appInsights.trackEvent({name: 'GameOver'}, {
+        winner: this.props.winner,
+        gameOverMessage: this.props.gameOverMessage
+      });
+    }
   }
 
   componentWillUnmount() {
@@ -107,11 +105,11 @@ class GameOver extends React.Component {
         }}>
           {topLevelMessage}
           <Text>{this.props.gameOverMessage}</Text>
-          <View style={{flexDirection: 'row', justifyContent: 'space-around', marginVertical: 10}}>
+          {/* <View style={{flexDirection: 'row', justifyContent: 'space-around', marginVertical: 10}}>
             <Text>Exp.</Text>
             <Text>+50</Text>
           </View>
-          <Text>Total: 100</Text>
+          <Text>Total: 100</Text> */}
           <TouchableOpacity
             onPress={() => {
               this.props.clearStore();
@@ -131,7 +129,8 @@ function mapStateToProps(state) {
     gameState: state.state,
     winner: state.winner,
     gameOverMessage: state.gameOverMessage,
-    role: state.role
+    role: state.role,
+    isHost: state.isHost
   };
 }
 

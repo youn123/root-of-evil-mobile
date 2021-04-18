@@ -2,6 +2,7 @@ import RootOfEvil, { PrivateChatStore } from './root-of-evil';
 import { getGameStateFromStore } from './reducer';
 import { removeMetadata } from './lobby'; 
 import { obfuscateMessage, obfuscateHandle, choose, nextId } from './utils';
+import appInsights from './telemetry';
 
 export async function hostHandleRootOfEvilMessage(messages, lobby, store) {
   let sendFinalGameState;
@@ -17,14 +18,16 @@ export async function hostHandleRootOfEvilMessage(messages, lobby, store) {
         break;
       case 'JOIN':
         let { newGameState, response } = RootOfEvil.apply(getGameStateFromStore(store), message);
-        sendFinalGameState = newGameState;
+        if (newGameState) {
+          sendFinalGameState = newGameState;
+
+          store.dispatch({
+            type: 'SET_GAME_STATE',
+            gameState: sendFinalGameState
+          });
+        }
 
         lobby.respondTo(message, response);
-
-        store.dispatch({
-          type: 'SET_GAME_STATE',
-          gameState: sendFinalGameState
-        });
         break;
       case 'DO_MISSION':
         newGameState = RootOfEvil.apply(getGameStateFromStore(store), messageWithoutMetadata);
@@ -101,8 +104,6 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
           gameState
         });
         break;
-      case 'JOIN':
-        break;
       case 'MESSAGE':
         if (to == '__everyone') {
           if (messageWithoutMetadata.ghostly && store.getState().alive)
@@ -126,7 +127,7 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
 
             store.dispatch({
               type: 'ADD_PRIVATE_MESSAGE',
-              message: obfuscateMessage(message, from != store.getState().privateChatLifeCycleState.personOfInterest)
+              message: from != store.getState().privateChatLifeCycleState.personOfInterest ? obfuscateHandle(message) : message
             });
           } else {
             store.dispatch({
@@ -139,6 +140,14 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
             }
           }
         }
+
+        if (store.getState().isHost) {
+          appInsights.trackEvent({name: 'Message'}, {
+            ...messageWithoutMetadata,
+            lobbyId: store.getState().lobbyCode
+          });
+        }
+
         break;
       case 'START_GAME':
         store.dispatch({
@@ -231,10 +240,26 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
             type: 'SET_KILL_CONTRACT',
             handle: from
           });
+
+          appInsights.trackEvent({name: 'Hack'}, {
+            from,
+            to,
+            result: 'Accepted',
+            chatRoomId: messages[0].to,
+            lobbyId: store.getState().lobbyCode
+          });
+
         } else {
           lobby.respondTo(message, {
             result: 'Rejected',
             from: store.getState().handle
+          });
+
+          appInsights.trackEvent({name: 'Hack'}, {
+            from,
+            to,
+            result: 'Rejected',
+            lobbyId: store.getState().lobbyCode
           });
         }
         break;
@@ -283,6 +308,8 @@ export function clientHandleRootOfEvilMessage(messages, lobby, store) {
           messages: leakedMessages
         });
 
+        break;
+      default:
         break;
     }
   }

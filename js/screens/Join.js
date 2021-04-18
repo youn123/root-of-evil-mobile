@@ -17,8 +17,9 @@ import { ShowWhen } from '../hoc';
 import { SERVER_ADDR } from '../../env';
 import RootOfEvil from '../root-of-evil';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
+import appInsights from '../telemetry';
 
 import { PRIMARY, SECONDARY, ACCENT, ACCENT_HOT } from '../styles';
 
@@ -79,7 +80,8 @@ class Join extends React.Component {
   state = {
     code: '',
     inputValid: false,
-    screenState: 'WaitingForInput' // enum('WaitingForInput', 'Loading', 'Failed')
+    screenState: 'WaitingForInput', // enum('WaitingForInput', 'Loading', 'Failed')
+    errMessage: ''
   }
 
   validateInput = input => {
@@ -97,6 +99,16 @@ class Join extends React.Component {
 
         this.props.navigation.navigate('Handle');
         this.setState({screenState: 'WaitingForInput'});
+
+        appInsights.trackEvent({name: 'JoinGame'}, {
+          lobbyId: lobby.lobbyId
+        });
+      })
+      .catch(error => {
+        this.setState({
+          screenState: 'Failed',
+          errMessage: error.message
+        });
       });
   }
 
@@ -137,7 +149,7 @@ class Join extends React.Component {
           </TouchableOpacity>
         </View>
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Enter the lobby code:</Text>
+          <Text style={styles.inputLabel}>Enter lobby code:</Text>
           <TextInput
             style={styles.input}
             maxLength={5}
@@ -155,7 +167,7 @@ class Join extends React.Component {
               <ActivityIndicator size='small' color='grey' />
             </ShowWhen>
             <ShowWhen condition={this.state.screenState == 'Failed'}>
-              <Text style={{color: 'red'}}>Failed to join {this.state.input}.</Text>
+              <Text style={{color: 'red'}}>{this.state.errMessage}</Text>
             </ShowWhen>
           </View>
         </View>

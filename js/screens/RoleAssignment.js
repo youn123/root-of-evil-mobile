@@ -21,11 +21,11 @@ import store from '../store';
 import { sleep, generateRandomBase64String, nextId } from '../utils';
 import { Handles } from '../components';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 import { ShowWhen } from '../hoc';
 
-import { PRIMARY } from '../styles';
+import { PRIMARY, ACCENT_COOL, ACCENT_HOT } from '../styles';
 import { calculateNumHacks } from '../game-settings';
 
 const { height } = Dimensions.get('window');
@@ -78,7 +78,7 @@ class RoleAssignment extends React.Component {
             from: '__announcement_high',
             to: '__everyone',
             id: `${this.props.handle}-${nextId()}`,
-            text: `Team lead for mission #${this.props.currentMissionIndex+1} is ${this.props.teamLead.handle}. Choose ${this.props.currentMission.numPeople} people to go on the mission.`
+            text: `Team lead is ${this.props.teamLead.handle}.`
           });
         });
     }
@@ -160,13 +160,13 @@ class RoleAssignment extends React.Component {
             source={require('../../assets/RootOfEvil.png')}
           />
           <ShowWhen condition={this.state.showInstructions}>
-            <View style={{marginTop: '40%', paddingTop: 110}}>
+            <View style={{position: 'absolute', bottom: '20%'}}>
               {/* <View style={{backgroundColor: 'red', width: 100, height: 100}} /> */}
               <Text style={{fontSize: 28}}>
-                You are a <Text style={{color: 'red'}}>Root of Evil</Text> operative.
+                You are a <Text style={{color: ACCENT_HOT}}>Root of Evil</Text> operative.
               </Text>
               <Text style={{marginTop: 20}}>
-                Your job is to sabotage the FBI from within. Work closely with <Handles names={this.props.evilMembers.filter(player => player.handle != this.props.handle).map(player => player.handle)} nameColor='red' />.
+                Your job is to sabotage the FBI from within. Work closely with <Handles names={this.props.evilMembers.filter(player => player.handle != this.props.handle).map(player => player.handle)} nameColor={ACCENT_HOT} />.
               </Text>
               <TouchableOpacity
                 style={{alignSelf: 'center', marginTop: 20}}
@@ -193,12 +193,18 @@ class RoleAssignment extends React.Component {
             source={require('../../assets/FBI.png')}
           />
           <ShowWhen condition={this.state.showInstructions}>
-            <View style={{marginTop: '40%', paddingTop: 110}}>
+            <View style={{position: 'absolute', bottom: '18%'}}>
               <Text style={{fontSize: 28}}>
-                You are an <Text style={{color: '#485696'}}>FBI</Text> agent.
+                You are an <Text style={{color: ACCENT_COOL}}>FBI</Text> agent.
               </Text>
-              <Text style={{marginTop: 20}}>
+              <Text style={{marginTop: 10}}>
                 Your job is to complete missions successfully.
+              </Text>
+              <Text style={{marginTop: 5}}>
+                Try to find who the Root of Evil operatives are with your deduction and hacking skills.
+              </Text>
+              <Text style={{marginTop: 5}}>
+                Don't gain their attention--your life may be in danger if you do.
               </Text>
               <TouchableOpacity
                 style={{alignSelf: 'center', marginTop: 20}}

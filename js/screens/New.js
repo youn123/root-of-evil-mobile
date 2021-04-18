@@ -13,8 +13,9 @@ import { ShowWhen } from '../hoc';
 import { SERVER_ADDR } from '../../env';
 import RootOfEvil from '../root-of-evil';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
+import appInsights from '../telemetry';
 
 import { PRIMARY, SECONDARY, ACCENT_HOT } from '../styles';
 
@@ -58,9 +59,13 @@ class New extends React.Component {
         
         this.props.hostNewGame(lobby.lobbyId);
         this.setState({screenState: 'Succeeded'});
+
+        appInsights.trackEvent({name: 'NewGame'}, {
+          lobbyId: lobby.lobbyId
+        });
       })
       .catch(err => {
-        this.setState({screenState: 'failed'});
+        this.setState({screenState: 'Failed'});
       });
   }
 
@@ -111,6 +116,9 @@ class New extends React.Component {
           <ShowWhen condition={this.state.screenState == 'Succeeded'}>
             <Text style={styles.statusMessage}>Succesfully created a new lobby!</Text>
             <Text style={styles.statusMessage}>Continue.</Text>
+          </ShowWhen>
+          <ShowWhen condition={this.state.screenState == 'Failed'}>
+            <Text>Failed to reach server :(</Text>
           </ShowWhen>
         </View>
       </SafeAreaView>

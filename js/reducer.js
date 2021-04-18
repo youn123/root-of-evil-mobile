@@ -1,5 +1,8 @@
+import { PRIMARY } from './styles';
+
 const INITIAL_STATE = {
   appState: 'Menu', // enum('Menu', 'Lobby', 'RoleAssignment', 'InGame'),
+  statusBarColor: PRIMARY,
   lobbyCode: '',
   isHost: false,
   handle: '',
@@ -120,6 +123,11 @@ export default function reducer(state = INITIAL_STATE, action) {
     case 'CLEAR_STORE':
       return {
         ...INITIAL_STATE
+      };
+    case 'SET_STATUS_BAR_COLOR':
+      return {
+        ...state,
+        statusBarColor: action.color
       };
   }
 

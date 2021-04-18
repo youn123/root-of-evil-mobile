@@ -14,13 +14,13 @@ import { PRIMARY } from '../styles';
 const styles = StyleSheet.create({
   container: {
     backgroundColor: PRIMARY,
-    height: '100%',
-    paddingLeft: 10
+    height: '100%'
   },
   title: {
     marginTop: 50,
-    fontSize: 48,
-    color: 'white'
+    fontSize: 40,
+    color: 'white',
+    alignSelf: 'center'
   },
   buttonBar: {
     marginTop: 50,
@@ -55,36 +55,19 @@ class Menu extends React.Component {
       <>
         <StatusBar backgroundColor={PRIMARY} />
         <SafeAreaView style={styles.container}>
-          {/* <Animated.View>
-            <Animated.Text style={{ transform: [{scale: this.state.scale}], backgroundColor: 'red', alignSelf: 'flex-start'}}>Hello world!</Animated.Text>
-            <Button
-              onPress={() => {
-                Animated.timing(
-                  this.state.scale,
-                  {
-                    toValue: 1,
-                    duration: 1000,
-                    useNativeDriver: true
-                  }
-                ).start();
-              }}
-              title='Press me'
-            />
-            <TextInput />
-          </Animated.View> */}
           <Text style={styles.title}>
-            Root{'\n'}of{'\n'}<Text>Evil</Text>
+            Root of Evil
           </Text>
           <View style={styles.buttonBar}>
             <TouchableOpacity onPress={() => {
               this.props.navigation.navigate('New');
             }}>
-              <Text style={[styles.button, {marginRight: 30}]}>New</Text>
+              <Text style={[styles.button, {marginRight: 7}]}>New</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => {
               this.props.navigation.navigate('Join');
             }}>
-              <Text style={[styles.button, {marginLeft: 30}]}>Join</Text>
+              <Text style={[styles.button, {marginLeft: 7}]}>Join</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>

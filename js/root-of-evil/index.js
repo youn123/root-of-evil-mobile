@@ -1,6 +1,6 @@
 const PrivateChatStore = require('./private-chat-store');
 const { choose, chooseNoReplacement } = require('../utils');
-const { calculateNumEvilMembers, generateMissions } = require('../game-settings');
+const { calculateNumEvilMembers, generateMissions, numPeoplePerMission } = require('../game-settings');
 
 const Roles = {
   RootOfEvil: 'RootOfEvil',
@@ -51,6 +51,15 @@ function apply(gameState, action) {
 }
   
 function join(gameState, joinData) {
+  if (gameState.state != 'Created') {
+    return {
+      response: {
+        result: 'Rejected',
+        message: 'This game has already started.'
+      }
+    };
+  }
+  
   if (gameState.players.includes(joinData.handle)) {
     return {
       newGameState: gameState,
@@ -86,7 +95,11 @@ function vote(gameState, action) {
   // First vote
   if (Object.keys(votesCopy).length == 0) {
     for (let player of gameState.players) {
-      votesCopy[player.handle] = null;
+      if (!player.alive) {
+        votesCopy[player.handle] = 'dead';
+      } else {
+        votesCopy[player.handle] = null;
+      }
     }
   }
 
@@ -119,7 +132,7 @@ function countVotes(gameState) {
 
   // Count number of votes
   for (let member of Object.keys(gameState.votes)) {
-    if (gameState.votes[member]) {
+    if (gameState.votes[member] === true) {
       numVotedYes++;
     } else if (gameState.votes[member] !== null && !gameState.votes[member]) {
       numVotedNo++;
@@ -260,16 +273,15 @@ function tick(gameState) {
     return newGameState;
   } else {
     let survivingFBIAgents = gameState.players.filter(player => player.alive && player.role != Roles.RootOfEvil);
-    let survivingEvilMembers = gameState.evilMembers.filter(player => player.alive);
 
     // If somehow population parity is reached
-    if (survivingEvilMembers == survivingFBIAgents) {
-      newGameState.state = 'GameOver';
-      newGameState.winner = Roles.RootOfEvil;
-      newGameState.gameOverMessage = `Too many FBI agents were killed`;
+    // if (survivingFBIAgents.length < Math.max(...numPeoplePerMission[gameState.players.length])) {
+    //   newGameState.state = 'GameOver';
+    //   newGameState.winner = Roles.RootOfEvil;
+    //   newGameState.gameOverMessage = `Too many FBI agents were killed`;
 
-      return newGameState;
-    }
+    //   return newGameState;
+    // }
   }
 
   do {

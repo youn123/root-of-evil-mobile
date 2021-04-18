@@ -12,10 +12,12 @@ import { connect } from 'react-redux';
 import store from '../store';
 import { ShowWhen } from '../hoc';
 
-// import { getCurrentLobby } from '../lobby';
-import { getCurrentLobby } from '../mocks/lobby';
+import { getCurrentLobby } from '../lobby';
+// import { getCurrentLobby } from '../mocks/lobby';
 import { hostHandleRootOfEvilMessage } from '../message-handler';
 import { PRIMARY, SECONDARY, ACCENT_HOT } from '../styles';
+
+import appInsights from '../telemetry';
 
 const styles = StyleSheet.create({
   container: {
@@ -55,6 +57,11 @@ class Lobby extends React.Component {
       type: 'START_GAME',
       to: '__everyone'
     });
+
+    appInsights.trackEvent({name: 'StartGame'}, {
+      numPlayers: this.props.players.length,
+      lobbyId: this.props.lobbyCode
+    });
   }
 
   setStateAsync = newState => {
@@ -71,7 +78,7 @@ class Lobby extends React.Component {
         <View style={styles.header}>
           <Text style={{fontSize: 19}}>{this.props.lobbyCode}</Text>
           <ShowWhen condition={status == 'Waiting'}>
-            <Text style={[styles.nextButton, {backgroundColor: SECONDARY}]}>Waiting...</Text>
+            <Text style={[styles.nextButton, {backgroundColor: SECONDARY}]}>Waiting for more players...</Text>
           </ShowWhen>
           <ShowWhen condition={status == 'Ready'}>
             <TouchableOpacity onPress={this.handleStart}>

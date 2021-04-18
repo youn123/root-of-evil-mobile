@@ -21,8 +21,8 @@ import { sleep, nextId } from '../utils';
 import { Handles } from '../components';
 import RootOfEvil from '../root-of-evil';
 
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -60,6 +60,10 @@ const styles = StyleSheet.create({
 
 class Vote extends React.Component {
   componentDidMount() {
+    if (!this.props.alive) {
+      this.props.navigation.navigate('Mission');
+    }
+    
     BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
   }
 
@@ -127,7 +131,8 @@ function mapStateToProps(state) {
     teamLead: state.players[state.teamLeadIndex],
     votes: state.votes,
     proposedTeam: state.proposedTeam,
-    role: state.role
+    role: state.role,
+    alive: state.alive
   };
 }
 

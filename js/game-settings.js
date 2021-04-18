@@ -1,10 +1,12 @@
 export const PRIVATE_CHAT_COOLDOWN_TIME = 100000;
+export const MIN_PLAYERS = 5;
 
-const numEvilMembers = {
+export const numEvilMembers = {
   // For testing
   1: 0,
   2: 1,
   3: 2,
+  4: 2,
   // Real games
   5: 2,
   6: 2,
@@ -14,13 +16,14 @@ const numEvilMembers = {
   10: 3
 };
 
-const numPeoplePerMission = {
+export const numPeoplePerMission = {
   // For testing
   1: [1, 1, 1, 1, 1],
   2: [1, 1, 2, 2, 2],
   3: [2, 2, 2, 2, 2],
+  4: [2, 2, 2, 2, 2],
   // Real games
-  5: [2, 3, 4, 3, 3],
+  5: [2, 3, 3, 3, 3],
   6: [2, 3, 4, 3, 4],
   7: [2, 3, 3, 4, 4],
   8: [3, 4, 4, 5, 5],

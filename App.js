@@ -73,7 +73,7 @@ class App extends React.Component {
 
     return (
       <>
-        <StatusBar backgroundColor={PRIMARY} />
+        <StatusBar backgroundColor={this.props.statusBarColor} />
         <NavigationContainer theme={{ colors: { background: '#000' }}}>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             {stack}
@@ -87,7 +87,7 @@ class App extends React.Component {
 function mapStateToProps(state) {
   return {
     appState: state.appState,
-    gameState: state.state
+    statusBarColor: state.statusBarColor
   };
 }
 

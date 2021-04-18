@@ -22,8 +22,8 @@ import { nextId } from '../utils';
 import TextBubble from '../components/TextBubble';
 import { ShowWhen } from '../hoc';
 import RootOfEvil from '../root-of-evil';
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const styles = StyleSheet.create({
   container: {
@@ -166,8 +166,14 @@ class MainChat extends React.Component {
     // Keyboard.addListener('keyboardDidHide', this.handleKeyboardDidHide);
 
     this.props.navigation.addListener('focus', () => {
-      console.log('[MainChat] MainChat focused');
+      console.log('[MainChat] focused');
+      this.props.setStatusBarColor(SECONDARY);
     });
+
+    this.props.navigation.addListener('blur', () => {
+      console.log('[MainChat] blur');
+      this.props.setStatusBarColor(PRIMARY);
+    })
   }
 
   componentWillUnmount() {
@@ -388,7 +394,7 @@ class MainChat extends React.Component {
             onChangeText={text => {
               this.setState({text});
             }}
-            placeholder={this.props.alive ? 'Choose your words carefully' : 'You are dead. The living cannot hear you.'}
+            placeholder={this.props.alive ? 'Choose your words carefully.' : 'You are dead. The living cannot hear you.'}
             placeholderTextColor={TERTIARY}
             multiline
             maxLength={140}
@@ -427,7 +433,8 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     setPrivateChatCooldown: privateChatCooldown => dispatch({type: 'SET_PRIVATE_CHAT_COOLDOWN', privateChatCooldown}),
-    setNumHacksRemaining: numHacks => dispatch({type: 'SET_NUM_HACKS_REMAINING', numHacks})
+    setNumHacksRemaining: numHacks => dispatch({type: 'SET_NUM_HACKS_REMAINING', numHacks}),
+    setStatusBarColor: color => dispatch({type: 'SET_STATUS_BAR_COLOR', color})
   };
 }
 

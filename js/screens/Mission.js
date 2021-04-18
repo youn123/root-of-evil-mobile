@@ -24,8 +24,8 @@ import { getGameStateFromStore } from '../reducer';
 import store from '../store';
 
 import { ShowWhen } from '../hoc';
-// import Lobby from '../lobby';
-import Lobby from '../mocks/lobby';
+import Lobby from '../lobby';
+// import Lobby from '../mocks/lobby';
 
 const { height } = Dimensions.get('window');
 
@@ -124,7 +124,7 @@ class Mission extends React.Component {
             from: '__announcement_high',
             to: '__everyone',
             id: `${this.props.handle}-${nextId()}`,
-            text: `Team lead for mission #${newGameState.currentMissionIndex+1} is ${newGameState.players[newGameState.teamLeadIndex].handle}. Choose ${newGameState.missions[newGameState.currentMissionIndex].numPeople} people to go on the mission.`
+            text: `Team lead is ${newGameState.players[newGameState.teamLeadIndex].handle}.`
           });
         }
       } else if (this.props.gameState == 'MissionAborted') {
@@ -138,7 +138,7 @@ class Mission extends React.Component {
             from: '__announcement_high',
             to: '__everyone',
             id: `${this.props.handle}-${nextId()}`,
-            text: `Team lead for mission ${newGameState.currentMissionIndex} is ${newGameState.teamLead.handle}. Choose ${newGameState.currentMission.numPeople} people to go on the mission.`
+            text: `Team lead is ${newGameState.players[newGameState.teamLeadIndex].handle}.`
           });
         }
       }
@@ -188,16 +188,23 @@ class Mission extends React.Component {
                         color={TERTIARY}
                       />
                     </ShowWhen>
-                    <ShowWhen condition={this.props.votes[member]}>
+                    <ShowWhen condition={this.props.votes[member] === true}>
                       <Icon
                         name='checkmark-circle-outline'
                         size={20}
                         color={ACCENT}
                       />
                     </ShowWhen>
-                    <ShowWhen condition={this.props.votes[member] !== null && !this.props.votes[member]}>
+                    <ShowWhen condition={this.props.votes[member] === false}>
                       <Icon
                         name='close-circle-outline'
+                        size={20}
+                        color={ACCENT_HOT}
+                      />
+                    </ShowWhen>
+                    <ShowWhen condition={this.props.votes[member] === 'dead'}>
+                      <Icon
+                        name='skull-outline'
                         size={20}
                         color={ACCENT_HOT}
                       />
@@ -234,6 +241,31 @@ class Mission extends React.Component {
           </View>
         </>
       );
+    } else if (this.state.screenState == 'MissionAborted') {
+      content = (
+        <>
+          <Text style={{marginBottom: 20, textAlignVertical: 'bottom'}}>Mission was aborted.</Text>
+          <TouchableOpacity
+            onPress={() => {
+              let newGameState = RootOfEvil.tick(getGameStateFromStore(store));
+
+              store.dispatch({
+                type: 'SET_GAME_STATE',
+                gameState: newGameState
+              });
+
+              if (newGameState.state == 'GameOver') {
+                this.props.navigation.navigate('GameOver');
+              } else {
+                this.props.navigation.navigate('MainChat');
+              }
+            }}
+            style={{marginTop: 20}}
+          >
+            <Text style={[styles.borderButton, {alignSelf: 'center'}]}>Continue</Text>
+          </TouchableOpacity>
+        </>
+      );
     } else {
       if (this.props.missionStatus === null) {
         return null;
@@ -263,8 +295,8 @@ class Mission extends React.Component {
               />
               <Text style={{color: 'red'}}>While the mission was going on, Root of Evil killed <Text style={{fontWeight: 'bold'}}>{this.props.killed}</Text>.</Text>
               <ShowWhen condition={this.props.privateChatLeaked}>
-                <Text style={{marginVertical: 5}}>FBI intercepted these private messages between Root of Evil members:</Text>
-                <View style={{height: height * 0.3, backgroundColor: SECONDARY, borderRadius: 10}}>
+                <Text style={{marginVertical: 5}}>FBI intercepted these private messages:</Text>
+                <View style={{maxHeight: height * 0.3, backgroundColor: SECONDARY, borderRadius: 10}}>
                   {leakedMessages}
                 </View>
               </ShowWhen>
@@ -281,8 +313,8 @@ class Mission extends React.Component {
               />
               <Text style={{color: ACCENT_WARM}}>Root of Evil tried to kill a member during the mission, but they failed.</Text>
               <ShowWhen condition={this.props.privateChatLeaked}>
-                <Text style={{marginVertical: 5}}>FBI intercepted these private messages between Root of Evil members:</Text>
-                <View style={{height: height * 0.3, backgroundColor: SECONDARY, borderRadius: 10}}>
+                <Text style={{marginVertical: 5}}>FBI intercepted these private messages:</Text>
+                <View style={{maxHeight: height * 0.3, backgroundColor: SECONDARY, borderRadius: 10}}>
                   {leakedMessages}
                 </View>
               </ShowWhen>
