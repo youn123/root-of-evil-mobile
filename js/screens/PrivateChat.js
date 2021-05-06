@@ -114,7 +114,7 @@ class PrivateChat extends React.Component {
     this.props.navigation.addListener('blur', () => {
       console.log('[PrivateChat] blur');
       this.props.setStatusBarColor(PRIMARY);
-    })
+    });
   }
 
   componentWillUnmount() {

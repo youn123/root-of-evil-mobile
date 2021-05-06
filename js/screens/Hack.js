@@ -86,12 +86,18 @@ class Hack extends React.Component {
   componentDidMount() {
     if (this.props.privateChatLifeCycleState.type == 'Connected') {
       this.setState({screenState: 'Connected', selected: this.props.privateChatLifeCycleState.personOfInterest});
+      this.props.setStatusBarColor(SECONDARY);
     }
 
     Keyboard.addListener('keyboardDidShow', this.handleKeyboardDidShow);
 
     this.props.navigation.addListener('focus', () => {
-      console.log('PrivateChat focused');
+      console.log('[Hack] focused');
+    });
+
+    this.props.navigation.addListener('blur', () => {
+      console.log('[Hack] blur');
+      this.props.setStatusBarColor(PRIMARY);
     });
   }
 
@@ -366,7 +372,8 @@ function mapDispatchToProps(dispatch) {
     setPrivateChatLifeCycleState: privateChatLifeCycleState => dispatch({type: 'SET_PRIVATE_CHAT_LIFE_CYCLE_STATE', privateChatLifeCycleState}),
     clearPrivateChat: () => dispatch({type: 'CLEAR_PRIVATE_CHAT'}),
     setPrivateMessages: messages => dispatch({type: 'SET_PRIVATE_MESSAGES', messages}),
-    setNumHacksRemaining: numHacks => dispatch({type: 'SET_NUM_HACKS_REMAINING', numHacks})
+    setNumHacksRemaining: numHacks => dispatch({type: 'SET_NUM_HACKS_REMAINING', numHacks}),
+    setStatusBarColor: color => dispatch({type: 'SET_STATUS_BAR_COLOR', color})
   };
 }
 

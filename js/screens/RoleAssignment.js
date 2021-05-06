@@ -204,7 +204,7 @@ class RoleAssignment extends React.Component {
                 Try to find who the Root of Evil operatives are with your deduction and hacking skills.
               </Text>
               <Text style={{marginTop: 5}}>
-                Don't gain their attention--your life may be in danger if you do.
+                Don't draw their attention--your life may be in danger if you do.
               </Text>
               <TouchableOpacity
                 style={{alignSelf: 'center', marginTop: 20}}
